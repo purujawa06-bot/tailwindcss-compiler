@@ -1,9 +1,8 @@
-name: Generate Single HTML
+name: Build Tailwind HTML
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build:
@@ -16,16 +15,15 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Run Bundler Script
+      - name: Build Project
         run: node build.js
 
-      - name: Upload Result
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Single-HTML-Output
-          path: dist/index.html
+          name: bundled-html
+          path: dist/
