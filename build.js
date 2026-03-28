@@ -1,45 +1,75 @@
 const fs = require('fs-extra');
 const { execSync } = require('child_process');
 const path = require('path');
+const axios = require('axios');
 
-async function build() {
-    const inputHtmlPath = './src/index.html';
-    const outputDir = './dist';
-    const outputHtmlPath = path.join(outputDir, 'index.html');
-    const tempCssPath = './temp.css';
-
-    // 1. Pastikan folder dist ada
-    await fs.ensureDir(outputDir);
-
-    // 2. Buat file CSS dasar untuk Tailwind
-    const tailwindDirectives = '@tailwind base;\n@tailwind components;\n@tailwind utilities;';
-    await fs.writeFile(tempCssPath, tailwindDirectives);
-
-    // 3. Jalankan Tailwind CLI untuk build CSS berdasarkan isi index.html
-    console.log('Generating Tailwind CSS...');
-    execSync(`npx tailwindcss -i ${tempCssPath} -o ${outputDir}/style.css --minify`);
-
-    // 4. Baca CSS yang baru di-generate
-    const generatedCss = await fs.readFile(`${outputDir}/style.css`, 'utf8');
-
-    // 5. Baca file HTML input
-    let htmlContent = await fs.readFile(inputHtmlPath, 'utf8');
-
-    // 6. HAPUS tag script CDN Tailwind
-    htmlContent = htmlContent.replace(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/g, '');
-
-    // 7. Masukkan CSS yang sudah di-build ke dalam tag <style> sebelum </head>
-    const styleTag = `\n<style>\n/* Tailwind Built-in */\n${generatedCss}\n</style>\n`;
-    htmlContent = htmlContent.replace('</head>', `${styleTag}</head>`);
-
-    // 8. Tulis file HTML hasil akhir ke folder dist
-    await fs.writeFile(outputHtmlPath, htmlContent);
-
-    // 9. Hapus file temporary
-    await fs.remove(tempCssPath);
-    await fs.remove(`${outputDir}/style.css`);
-
-    console.log('Build completed! Cek folder /dist');
+async function fetchContent(url) {
+    try {
+        console.log(`Downloading: ${url}`);
+        const response = await axios.get(url);
+        return response.data;
+    } catch (err) {
+        console.error(`Gagal mendownload ${url}: ${err.message}`);
+        return `/* Gagal memuat: ${url} */`;
+    }
 }
 
-build().catch(err => console.error(err));
+async function run() {
+    const inputPath = './src/index.html';
+    const distDir = './dist';
+    const tempCss = './temp_tailwind.css';
+
+    await fs.ensureDir(distDir);
+
+    // 1. Generate Tailwind CSS
+    console.log('Sedang memproses Tailwind...');
+    const tailwindInput = '@tailwind base; @tailwind components; @tailwind utilities;';
+    await fs.writeFile('./input.css', tailwindInput);
+    execSync(`npx tailwindcss -i ./input.css -o ${tempCss} --minify`);
+    const tailwindContent = await fs.readFile(tempCss, 'utf8');
+
+    // 2. Baca file HTML asli
+    let html = await fs.readFile(inputPath, 'utf8');
+
+    // 3. Proses External CSS (<link rel="stylesheet">)
+    const linkRegex = /<link.*href=["'](http.*?)["'].*?>/g;
+    let linkMatch;
+    while ((linkMatch = linkRegex.exec(html)) !== null) {
+        const fullTag = linkMatch[0];
+        const url = linkMatch[1];
+        const cssContent = await fetchContent(url);
+        html = html.replace(fullTag, `<style>\n/* Inlined: ${url} */\n${cssContent}\n</style>`);
+    }
+
+    // 4. Proses External JS (<script src="http...">)
+    const scriptRegex = /<script.*src=["'](http.*?)["'].*?><\/script>/g;
+    let scriptMatch;
+    while ((scriptMatch = scriptRegex.exec(html)) !== null) {
+        const fullTag = scriptMatch[0];
+        const url = scriptMatch[1];
+        
+        // Lewati CDN Tailwind karena sudah kita build sendiri
+        if (url.includes('cdn.tailwindcss.com')) {
+            html = html.replace(fullTag, '');
+            continue;
+        }
+
+        const jsContent = await fetchContent(url);
+        html = html.replace(fullTag, `<script>\n/* Inlined: ${url} */\n${jsContent}\n</script>`);
+    }
+
+    // 5. Masukkan Tailwind hasil build ke dalam <head>
+    const tailwindStyleTag = `\n<style>\n/* Tailwind CSS Built-in */\n${tailwindContent}\n</style>\n`;
+    html = html.replace('</head>', `${tailwindStyleTag}</head>`);
+
+    // 6. Simpan hasil akhir
+    await fs.writeFile(path.join(distDir, 'index.html'), html);
+
+    // Clean up
+    await fs.remove('./input.css');
+    await fs.remove(tempCss);
+
+    console.log('Selesai! File output ada di dist/index.html');
+}
+
+run();
