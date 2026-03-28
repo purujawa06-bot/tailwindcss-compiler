@@ -1,12 +1,13 @@
 {
-  "name": "tailwind-bundler-gh-action",
+  "name": "all-in-one-html-bundler",
   "version": "1.0.0",
-  "description": "Bundle Tailwind CSS from CDN to Built-in",
+  "description": "Bundle Tailwind, External CSS, and External JS into a single HTML file",
   "main": "build.js",
   "dependencies": {
     "tailwindcss": "^3.4.1",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "axios": "^1.6.7"
   }
 }
