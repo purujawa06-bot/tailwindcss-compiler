@@ -1,45 +1,1306 @@
-const fs = require('fs-extra');
-const { execSync } = require('child_process');
-const path = require('path');
+<!DOCTYPE html>
+<html lang="id" x-data="puruTVApp()">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PurTV">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1038/1038100.png">
+<link rel="manifest" href='data:application/manifest+json,{"name":"PurTV Donghua","short_name":"PurTV","description":"Refactored - Modern & Compact","start_url":".","display":"standalone","background_color":"#0f1117","theme_color":"#3b82f6","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/1038/1038100.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+<title x-text="title">PurTV - Nonton Donghua Sub Indo</title>
+<script>
+  /* Tailwind CDN Warning Suppressor (Caching Disabled) */
+  (function() {
+    // Suppress Tailwind CDN warnings only
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+      originalWarn(...args);
+    };
+    
+    // Clear any existing legacy cache
+    localStorage.removeItem('purtv_tw_cache');
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+[x-cloak]{display:none!important}
+:root{--bg:#0f1117;--card:#161922;--card2:#1f232d;--blue:#3b82f6;--border:#1f2535}
+body{background:var(--bg);padding-bottom:80px;scroll-behavior:smooth}
+@media(min-width:768px){body{padding-bottom:20px}}
+.aspect-poster{aspect-ratio:2/3}
+.glass{background:rgba(22,25,34,.9);backdrop-filter:blur(15px)}
+.grid-r{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem}
+@media(min-width:640px){.grid-r{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1024px){.grid-r{grid-template-columns:repeat(5,1fr)}}
+::-webkit-scrollbar{display:none}*{scrollbar-width:none;-ms-overflow-style:none}
 
-async function build() {
-    const inputHtmlPath = './src/index.html';
-    const outputDir = './dist';
-    const outputHtmlPath = path.join(outputDir, 'index.html');
-    const tempCssPath = './temp.css';
+/* Themes Global Override */
+body{transition:background-color .3s,border-color .3s,color .3s}
+body.theme-emerald{--blue:#10b981;--blue-rgb:16,185,129}
+body.theme-purple{--blue:#a855f7;--blue-rgb:168,85,247}
+body.theme-rose{--blue:#f43f5e;--blue-rgb:244,63,94}
+body.theme-amber{--blue:#f59e0b;--blue-rgb:245,158,11}
+body.theme-custom{--blue:var(--c-color);--blue-rgb:var(--c-rgb)}
+body.theme-rainbow{--blue:var(--rb-1);--blue-rgb:var(--rb-1-rgb)}
+body.theme-rainbow nav.glass{--blue:var(--rb-2);--blue-rgb:var(--rb-2-rgb)}
+body.theme-rainbow header{--blue:var(--rb-3);--blue-rgb:var(--rb-3-rgb)}
+body.theme-rainbow .card-poster:hover{border-color:var(--rb-4)!important}
+body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1), var(--rb-2), var(--rb-3))}
 
-    // 1. Pastikan folder dist ada
-    await fs.ensureDir(outputDir);
+/* Force Tailwind classes to follow theme variable */
+[class*="theme-"] .text-blue-400,[class*="theme-"] .text-blue-500,[class*="theme-"] .text-blue-600,
+[class*="theme-"] .hover\:text-blue-400:hover,[class*="theme-"] .hover\:text-blue-500:hover{color:var(--blue)!important}
 
-    // 2. Buat file CSS dasar untuk Tailwind
-    const tailwindDirectives = '@tailwind base;\n@tailwind components;\n@tailwind utilities;';
-    await fs.writeFile(tempCssPath, tailwindDirectives);
+[class*="theme-"] .bg-blue-600,[class*="theme-"] .bg-blue-700,[class*="theme-"] .bg-blue-500,
+[class*="theme-"] .hover\:bg-blue-600:hover,[class*="theme-"] .hover\:bg-blue-700:hover{background-color:var(--blue)!important}
 
-    // 3. Jalankan Tailwind CLI untuk build CSS berdasarkan isi index.html
-    console.log('Generating Tailwind CSS...');
-    execSync(`npx tailwindcss -i ${tempCssPath} -o ${outputDir}/style.css --minify`);
+[class*="theme-"] .border-blue-500,[class*="theme-"] .border-blue-600,[class*="theme-"] .hover\:border-blue-500:hover{border-color:var(--blue)!important}
 
-    // 4. Baca CSS yang baru di-generate
-    const generatedCss = await fs.readFile(`${outputDir}/style.css`, 'utf8');
+[class*="theme-"] .bg-blue-600\/10,[class*="theme-"] .hover\:bg-blue-600\/10:hover{background-color:rgba(var(--blue-rgb),.1)!important}
+[class*="theme-"] .bg-blue-600\/20,[class*="theme-"] .hover\:bg-blue-600\/20:hover{background-color:rgba(var(--blue-rgb),.2)!important}
+[class*="theme-"] .border-blue-500\/20,[class*="theme-"] .border-blue-500\/50,[class*="theme-"] .border-blue-600\/40{border-color:rgba(var(--blue-rgb),.3)!important}
+[class*="theme-"] .shadow-blue-600\/30,[class*="theme-"] .shadow-blue-500\/20{--tw-shadow-color:rgba(var(--blue-rgb),.4)!important}
 
-    // 5. Baca file HTML input
-    let htmlContent = await fs.readFile(inputHtmlPath, 'utf8');
+.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.line-clamp-1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 
-    // 6. HAPUS tag script CDN Tailwind
-    htmlContent = htmlContent.replace(/<script src="https:\/\/cdn\.tailwindcss\.com"><\/script>/g, '');
+/* AI Modal */
+.ai-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:768px){.ai-overlay{align-items:center}}
+.ai-panel{background:var(--card);border:1px solid rgba(59,130,246,.25);border-radius:2rem 2rem 0 0;width:100%;max-width:780px;max-height:85vh;overflow-y:auto;padding:2rem;animation:slideUp .35s cubic-bezier(.16,1,.3,1)}
+@media(min-width:768px){.ai-panel{border-radius:2rem;max-height:80vh;margin:1rem}}
 
-    // 7. Masukkan CSS yang sudah di-build ke dalam tag <style> sebelum </head>
-    const styleTag = `\n<style>\n/* Tailwind Built-in */\n${generatedCss}\n</style>\n`;
-    htmlContent = htmlContent.replace('</head>', `${styleTag}</head>`);
+/* AI button ring */
+.ai-ring{position:relative}
+.ai-ring::before{content:'';position:absolute;inset:-3px;border-radius:inherit;background:linear-gradient(135deg,var(--blue),#6366f1,#06b6d4);z-index:-1;animation:hueRot 3s linear infinite;border-radius:1rem}
+@keyframes hueRot{to{filter:hue-rotate(360deg)}}
 
-    // 8. Tulis file HTML hasil akhir ke folder dist
-    await fs.writeFile(outputHtmlPath, htmlContent);
+/* Markdown */
+.md-content{color:#d1d5db;line-height:1.75;font-size:.9rem}
+.md-content h1,.md-content h2,.md-content h3,.md-content h4{font-weight:900;color:#f9fafb;margin:1.25rem 0 .5rem}
+.md-content h3{font-size:1rem;color:#60a5fa;text-transform:uppercase;letter-spacing:.05em}
+.md-content h2{font-size:1.1rem}
+.md-content p{margin-bottom:.75rem}
+.md-content strong{color:#e2e8f0;font-weight:800}
+.md-content em{color:#a5b4fc}
+.md-content ol,.md-content ul{padding-left:1.25rem;margin-bottom:.75rem}
+.md-content li{margin-bottom:.35rem}
+.md-content hr{border-color:#374151;margin:1rem 0}
+.md-content code{background:#1f232d;color:#60a5fa;padding:.15rem .4rem;border-radius:.35rem;font-size:.8em}
+.md-content blockquote{border-left:3px solid var(--blue);padding-left:1rem;color:#9ca3af;margin:.75rem 0}
 
-    // 9. Hapus file temporary
-    await fs.remove(tempCssPath);
-    await fs.remove(`${outputDir}/style.css`);
+/* Confirm Modal */
+.confirm-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem}
+.confirm-panel{background:var(--card);border:1px solid rgba(239,68,68,.25);border-radius:1.5rem;width:100%;max-width:400px;padding:2rem;animation:slideUp .25s cubic-bezier(.16,1,.3,1)}
 
-    console.log('Build completed! Cek folder /dist');
+/* Wave Loader */
+.wave-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:70vh;gap:1.5rem}
+.wave-txt{position:relative;font-size:3.5rem;font-weight:900;letter-spacing:-2px;color:rgba(31,35,45,.8);text-transform:uppercase}
+.wave-txt::after{content:"PURTV";position:absolute;left:0;top:0;width:100%;height:100%;color:var(--blue);overflow:hidden;animation:waveFill 2.5s ease-in-out infinite;border-bottom:4px solid var(--blue);filter:drop-shadow(0 0 10px rgba(59,130,246,.5))}
+@keyframes waveFill{0%,100%{height:0%;filter:hue-rotate(0)}50%{height:100%;filter:hue-rotate(20deg)}}
+.wave-sub{font-size:10px;font-weight:900;color:var(--blue);text-transform:uppercase;letter-spacing:.4em;opacity:.6;animation:pulse 1.5s infinite}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* Initial Splash Screen */
+#pur-splash {
+  position: fixed;
+  inset: 0;
+  background: #0f1117;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.4s ease-out, visibility 0.4s;
+}
+#pur-splash.fade-out {
+  opacity: 0;
+  visibility: hidden;
 }
 
-build().catch(err => console.error(err));
+/* Trash */
+.trash-in{animation:trashIn .3s ease}
+@keyframes trashIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+</style>
+</head>
+<body class="text-gray-200 font-sans antialiased">
+
+<!-- INITIAL SPLASH LOADER (Vanilla CSS) -->
+<div id="pur-splash">
+  <div class="wave-wrap">
+    <div class="wave-txt">PurTV</div>
+    <div class="wave-sub">Initializing App...</div>
+  </div>
+</div>
+
+<!-- DESKTOP HEADER -->
+<header class="hidden md:block bg-[#161922] border-b border-gray-800 sticky top-0 z-50">
+  <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2 cursor-pointer" @click="go('home')">
+      <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20"><i class="fas fa-tv text-white"></i></div>
+      <span class="text-2xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span></span>
+    </div>
+    <nav class="flex gap-8 items-center font-bold text-sm uppercase tracking-widest">
+      <template x-for="n in navLinks" :key="n.view">
+        <a href="#" @click.prevent="go(n.view)" :class="isActive(n.match)?'text-blue-500':'text-gray-400 hover:text-blue-400'" class="transition flex items-center gap-1.5">
+          <i :class="n.icon+' text-xs'" x-show="n.icon"></i><span x-text="n.label"></span>
+          <span x-show="n.view==='history' && watchHistory.length>0" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full" x-text="watchHistory.length"></span>
+        </a>
+      </template>
+    </nav>
+    <div class="flex items-center gap-3">
+      <button @click="go('schedule')" class="w-10 h-10 flex items-center justify-center bg-[#0f1117] border border-gray-700 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-500 transition shadow-sm" title="Jadwal Rilis">
+        <i class="fas fa-calendar-day"></i>
+      </button>
+      <div class="relative w-64" @click.away="showSuggestions=false">
+        <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchSuggestions()" @keyup.enter="startSearch()" @focus="suggestions.length>0&&(showSuggestions=true)" placeholder="Cari donghua..." class="w-full bg-[#0f1117] border border-gray-700 rounded-xl py-2 px-4 pl-11 focus:outline-none focus:border-blue-500 text-sm transition">
+        <i class="fas fa-search absolute left-4 top-3 text-gray-500"></i>
+        <div x-show="showSuggestions&&suggestions.length>0" x-transition x-cloak class="absolute top-full left-0 right-0 mt-2 bg-[#161922] border border-gray-800 rounded-xl overflow-hidden z-[60] shadow-2xl">
+          <template x-for="s in suggestions" :key="s">
+            <div @click="searchQuery=s;startSearch()" class="px-4 py-2.5 hover:bg-blue-600/10 cursor-pointer text-[11px] font-bold text-gray-400 hover:text-blue-400 border-b border-gray-800/50 last:border-0 transition-colors" x-text="s"></div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE HEADER -->
+<div class="md:hidden bg-[#161922] p-4 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
+  <span class="text-xl font-black text-white tracking-tighter cursor-pointer flex items-center gap-2" @click="go('home')">
+    <i class="fas fa-tv text-blue-500"></i>
+    <span>Pur<span class="text-blue-500">TV</span></span>
+  </span>
+  <div class="flex items-center gap-2">
+    <button @click="go('schedule')" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-xl text-gray-400"><i class="fas fa-calendar-day"></i></button>
+    <button @click="showSearch=!showSearch" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-full text-gray-400"><i class="fas fa-search"></i></button>
+  </div>
+</div>
+
+<!-- MOBILE SEARCH BAR -->
+<div x-show="showSearch" x-transition x-cloak class="md:hidden fixed top-[65px] left-0 right-0 z-50 p-4 bg-[#1f232d] border-b border-gray-800 shadow-2xl" @click.away="showSuggestions=false">
+  <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchSuggestions()" @keyup.enter="startSearch();showSearch=false" @keyup.escape="showSearch=false" placeholder="Ketik judul donghua..." class="w-full bg-[#0f1117] border border-gray-700 rounded-xl py-3 px-4 focus:border-blue-500 outline-none text-sm" x-ref="searchInput" x-effect="showSearch&&$nextTick(()=>$refs.searchInput.focus())">
+  <div x-show="showSuggestions&&suggestions.length>0" class="mt-2 bg-[#161922] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+    <template x-for="s in suggestions" :key="s">
+      <div @click="searchQuery=s;startSearch();showSearch=false" class="px-4 py-3 hover:bg-blue-600/10 cursor-pointer text-xs font-bold text-gray-400 hover:text-blue-400 border-b border-gray-800/50 last:border-0" x-text="s"></div>
+    </template>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main class="container mx-auto px-4 py-8">
+
+  <!-- LOADER -->
+  <div x-show="loading" x-cloak>
+    <div class="wave-wrap">
+      <div class="wave-txt">PurTV</div>
+      <div class="wave-sub">Sedang Memuat Pengalaman Anda...</div>
+    </div>
+  </div>
+
+  <div x-show="!loading">
+
+    <!-- ===== HOME ===== -->
+    <template x-if="page==='home'">
+      <div class="space-y-12">
+        <!-- Featured Banner -->
+        <div class="relative rounded-[2rem] overflow-hidden h-[300px] md:h-[450px] shadow-2xl group/banner border border-white/5">
+          <template x-if="homeData.featuredSlider && homeData.featuredSlider.length > 0">
+            <div class="h-full relative overflow-hidden transition-all duration-500" :style="'box-shadow: inset 0 -120px 100px -20px ' + (homeData.featuredSlider[sliderIndex].color || '#3b82f6') + '22'">
+              <img :src="homeData.featuredSlider[sliderIndex].thumbnail" class="w-full h-full object-cover brightness-[0.4] transition-all duration-700 scale-105">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#0f1117] via-transparent p-6 md:p-16 flex flex-col justify-end">
+                <div class="mb-4 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 w-max animate-bounce">
+                   <span class="w-2 h-2 rounded-full animate-pulse bg-blue-500"></span>
+                   <span class="text-[10px] font-black uppercase tracking-widest text-white">Rekomendasi Minggu Ini</span>
+                </div>
+                <h2 class="text-3xl md:text-5xl font-black text-white mb-2 transition-all" x-text="cleanTitle(homeData.featuredSlider[sliderIndex].title)" :style="'text-shadow: 0 0 30px ' + (homeData.featuredSlider[sliderIndex].color || '#3b82f6') + '66'"></h2>
+                <p class="text-gray-400 text-sm max-w-2xl line-clamp-2 mb-6" x-text="homeData.featuredSlider[sliderIndex].description"></p>
+                <button @click="go('detail', homeData.featuredSlider[sliderIndex].url)" 
+                  class="w-max px-8 py-3 rounded-xl font-black transition-all hover:scale-110 active:scale-95 shadow-2xl text-white bg-blue-600 shadow-blue-600/30">
+                  <i class="fas fa-play-circle mr-2"></i>Tonton Sekarang
+                </button>
+              </div>
+              
+              <!-- Slider Navigation Buttons -->
+              <div class="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center z-20 pointer-events-none">
+                <button @click="prevSlide()" class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-black/40 hover:bg-white text-white hover:text-black rounded-full backdrop-blur-xl transition-all duration-300 pointer-events-auto border border-white/10 shadow-2xl">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button @click="nextSlide()" class="w-10 h-10 md:w-14 md:h-14 flex items-center justify-center bg-black/40 hover:bg-white text-white hover:text-black rounded-full backdrop-blur-xl transition-all duration-300 pointer-events-auto border border-white/10 shadow-2xl">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+
+              <!-- Slider Dots -->
+              <div class="absolute top-8 right-8 flex gap-2 z-20">
+                <template x-for="(s, i) in homeData.featuredSlider" :key="i">
+                  <div @click="sliderIndex = i" class="h-2 rounded-full transition-all duration-500 cursor-pointer border border-white/10 shadow-lg" 
+                    :class="sliderIndex === i ? 'w-10 bg-blue-600' : 'w-2 bg-white/20 hover:bg-white/40'"></div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Popular Today -->
+        <section>
+          <div class="sec-head"><i class="fas fa-fire text-orange-500 text-xl"></i><h3 class="text-xl font-black uppercase italic tracking-wider">Populer Hari Ini</h3></div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <template x-for="(item,i) in (homeData.popularToday||[])" :key="'pop-'+i">
+              <div @click="go('stream',item.url)" class="relative group cursor-pointer overflow-hidden rounded-2xl border border-white/5 hover:border-blue-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10">
+                <img :src="item.thumbnail" class="w-full aspect-video object-cover group-hover:scale-110 transition duration-700 brightness-75 group-hover:brightness-100">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#0f1117] via-transparent to-transparent opacity-80"></div>
+                <div class="absolute inset-0 flex flex-col justify-end p-3">
+                  <p class="text-[9px] font-black text-blue-400 uppercase tracking-tighter" x-text="item.episode"></p>
+                  <h4 class="text-xs font-black line-clamp-1 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></h4>
+                </div>
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <div class="bg-blue-600 rounded-full p-1.5 shadow-lg"><i class="fas fa-play text-[8px] text-white"></i></div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <!-- Latest + Sidebar -->
+        <div class="flex flex-col lg:flex-row gap-10">
+          <div class="lg:w-3/4">
+            <div class="sec-head"><div class="h-6 w-1.5 bg-blue-600 rounded-full"></div><h3 class="text-xl font-black uppercase italic">Update Terbaru</h3></div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+              <template x-for="(item,i) in (homeData.latestReleases||[])" :key="'lat-'+i">
+                <div @click="go('stream',item.url)" class="card-poster group">
+                  <div class="relative aspect-poster overflow-hidden">
+                    <img :src="item.thumbnail" class="w-full h-full object-cover">
+                    <div class="ep-badge bg-blue-600" x-text="item.episode"></div>
+                    <div class="play-overlay"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"><i class="fas fa-play text-white text-xl ml-1"></i></div></div>
+                  </div>
+                  <div class="p-3"><h4 class="text-[11px] font-bold line-clamp-2 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></h4></div>
+                </div>
+              </template>
+            </div>
+          </div>
+          <!-- Sidebar Ongoing -->
+          <div class="lg:w-1/4">
+            <div class="bg-[#161922] rounded-[2rem] p-6 border border-gray-800 sticky top-24">
+              <h3 class="text-sm font-black uppercase mb-6 text-blue-500 tracking-widest border-b border-gray-800 pb-2"><i class="fas fa-broadcast-tower mr-2"></i>Series Ongoing</h3>
+              <div class="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                <template x-for="(item,i) in (homeData.ongoingSidebar||[])" :key="'side-'+i">
+                  <div @click="go('stream',item.url)" class="flex items-center gap-3 group cursor-pointer border-b border-gray-800/50 pb-3 last:border-0">
+                    <div class="flex-1">
+                      <h4 class="text-[11px] font-bold line-clamp-1 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></h4>
+                      <p class="text-[9px] text-gray-500 font-bold mt-1" x-text="item.episode"></p>
+                    </div>
+                    <i class="fas fa-chevron-right text-[10px] text-gray-700 group-hover:text-blue-500"></i>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </template>
+
+    <!-- ===== GENRES ===== -->
+    <template x-if="page==='genres'">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-black mb-10 text-center uppercase tracking-widest"><i class="fas fa-layer-group text-blue-500 mr-3"></i>Telusuri Genre</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <template x-for="g in allGenres" :key="g.slug">
+            <button @click="go('genre',g.slug)" class="bg-[#161922] hover:bg-blue-600 border border-gray-800 p-4 rounded-xl text-xs font-black transition flex items-center justify-center gap-2">
+              <i class="fas fa-tag text-blue-400 group-hover:text-white text-[10px]"></i><span x-text="g.name"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== RESULTS ===== -->
+    <template x-if="page==='results'">
+      <div>
+        <div class="flex items-center justify-between mb-8">
+          <h2 class="text-xl font-black uppercase italic" x-text="searchTitle"></h2>
+          <div class="text-[10px] font-black text-gray-500 bg-[#161922] px-3 py-1 rounded-lg"><i class="fas fa-file-alt mr-1"></i>Hal <span x-text="currentPage"></span></div>
+        </div>
+        <!-- Empty State -->
+        <div x-show="listData.length===0" class="flex flex-col items-center justify-center py-20 text-center">
+          <div class="w-20 h-20 rounded-[2rem] bg-[#161922] border border-gray-800 flex items-center justify-center mb-6 text-gray-700">
+            <i class="fas fa-search text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-black text-gray-500 uppercase tracking-widest mb-2">Hasil Tidak Ditemukan</h3>
+          <p class="text-[10px] text-gray-600 font-bold max-w-xs uppercase tracking-[.2em] leading-loose">Coba gunakan kata kunci lain.</p>
+        </div>
+        <!-- Grid -->
+        <div x-show="listData.length>0" class="grid-r">
+          <template x-for="(item,i) in listData" :key="'res-'+i">
+            <div @click="go('detail',item.url)" class="card-poster group">
+              <div class="relative aspect-poster">
+                <img :src="item.thumbnail" class="w-full h-full object-cover">
+                <div class="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded text-[9px] font-black text-yellow-500 uppercase border border-white/10" x-text="item.type"></div>
+                <div class="play-overlay"><div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"><i class="fas fa-info text-white text-lg"></i></div></div>
+              </div>
+              <div class="p-3">
+                <h4 class="text-[11px] font-bold line-clamp-2 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></h4>
+                <div class="flex items-center justify-between mt-3">
+                  <span class="text-[9px] bg-gray-800 group-hover:bg-blue-600/20 group-hover:text-blue-400 text-gray-400 px-1.5 py-0.5 rounded font-black uppercase transition" x-text="item.status"></span>
+                  <span class="text-[9px] text-blue-500 font-black" x-text="item.episode"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        <!-- Pagination -->
+        <div x-show="listData.length>0" class="mt-12 flex justify-center items-center gap-3">
+          <button @click="changePage(currentPage-1)" :disabled="currentPage<=1" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <div class="bg-blue-600 px-6 py-2 rounded-xl font-black text-xs uppercase"><i class="fas fa-book-open mr-2"></i>Hal <span x-text="currentPage"></span></div>
+          <button @click="changePage(currentPage+1)" :disabled="!hasNextPage" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== DETAIL ===== -->
+    <template x-if="page==='detail'">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex flex-col md:flex-row gap-8 lg:gap-14">
+          <!-- Poster & Meta -->
+          <div class="w-full md:w-1/3 lg:w-1/4">
+            <img :src="animeDetail.thumbnail" class="w-full rounded-[2.5rem] shadow-2xl ring-1 ring-gray-800">
+            <div class="mt-6 bg-[#161922] p-6 rounded-[2rem] border border-gray-800 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-yellow-500 font-black text-xl"><i class="fas fa-star mr-2"></i><span x-text="animeDetail.rating"></span></span>
+                <span class="text-[10px] bg-blue-600 px-2 py-1 rounded font-black uppercase" x-text="animeDetail.metadata?.type||'-'"></span>
+              </div>
+              <div class="text-xs space-y-3 pt-4 border-t border-gray-800">
+                <p><span class="text-gray-500 flex items-center gap-1 mb-0.5"><i class="fas fa-signal text-[9px]"></i> Status</span><strong x-text="animeDetail.metadata?.status||'-'"></strong></p>
+                <p><span class="text-gray-500 flex items-center gap-1 mb-0.5"><i class="fas fa-building text-[9px]"></i> Studio</span><strong x-text="animeDetail.metadata?.studio||'-'"></strong></p>
+                <p><span class="text-gray-500 flex items-center gap-1 mb-0.5"><i class="fas fa-sync-alt text-[9px]"></i> Update</span><strong x-text="animeDetail.metadata?.updated_on||'-'"></strong></p>
+              </div>
+            </div>
+          </div>
+          <!-- Info -->
+          <div class="w-full md:w-2/3 lg:w-3/4">
+            <h1 class="text-3xl md:text-5xl font-black mb-4 leading-tight" x-text="animeDetail.title"></h1>
+            <div class="flex flex-wrap gap-2 mb-8">
+              <template x-for="g in animeDetail.genres" :key="g">
+                <button @click="go('genre',g.toLowerCase().replace(/\s+/g,'-'))" class="bg-blue-600/10 text-blue-400 border border-blue-500/20 px-4 py-1.5 rounded-full text-[10px] font-black uppercase hover:bg-blue-600 hover:text-white transition" x-text="g"></button>
+              </template>
+            </div>
+            <div class="bg-[#161922] p-8 rounded-[2rem] border border-gray-800 mb-6">
+              <h3 class="text-xs font-black uppercase text-blue-500 mb-3 tracking-widest"><i class="fas fa-align-left mr-2"></i>Sinopsis</h3>
+              <p class="text-gray-400 text-sm leading-relaxed" x-text="animeDetail.synopsis"></p>
+            </div>
+            <!-- AI Button -->
+            <div class="mb-10">
+              <button @click="openAIPanel(animeDetail.title)" class="ai-ring relative w-full flex items-center justify-center gap-3 bg-[#0f1117] hover:bg-[#1a1f2e] py-4 px-6 rounded-[1rem] font-black text-sm uppercase tracking-widest transition group">
+                <span class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-blue-600 shadow-lg group-hover:scale-110 transition">
+                  <i class="fas fa-robot text-white text-xs"></i>
+                </span>
+                <span class="text-gray-200 group-hover:text-white" x-text="'Penjelasan AI tentang '+currentType+' ini'"></span>
+                <i class="fas fa-wand-magic-sparkles text-blue-400 text-xs ml-auto opacity-70 group-hover:opacity-100"></i>
+              </button>
+            </div>
+            <!-- Episode List -->
+            <h3 class="text-lg font-black mb-6 uppercase italic"><i class="fas fa-list-ol text-blue-500 mr-3"></i>Daftar Episode</h3>
+            <div class="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-2 max-h-[400px] overflow-y-auto pr-2">
+              <template x-for="ep in animeDetail.episodeList" :key="ep.url">
+                <div @click="go('stream',ep.url)" class="bg-[#1f232d] hover:bg-blue-600 p-3 rounded-lg text-center cursor-pointer transition text-[11px] font-black border border-gray-800 flex items-center justify-center gap-1">
+                  <i class="fas fa-play text-[8px] opacity-60"></i><span x-text="ep.episode||ep.episode_number"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== STREAM ===== -->
+    <template x-if="page==='stream'">
+      <div class="max-w-5xl mx-auto">
+        <div class="mb-6">
+          <h1 class="text-xl md:text-2xl font-black text-white" x-text="streamData.title"></h1>
+          <button @click="go('detail',streamData.series_url)" class="text-blue-500 text-xs font-bold hover:underline mt-1 flex items-center gap-1">
+            <i class="fas fa-arrow-left text-[10px]"></i><span x-text="streamData.series"></span>
+          </button>
+        </div>
+        <!-- Player -->
+        <div class="bg-black rounded-[2rem] overflow-hidden shadow-2xl mb-8 aspect-video ring-1 ring-gray-800">
+          <iframe :src="activeServer" class="w-full h-full" allowfullscreen frameborder="0"></iframe>
+        </div>
+        <!-- Server Selector -->
+        <div class="flex flex-wrap gap-2 mb-6">
+          <template x-for="(srv,si) in (streamData.streamingLinks||[])" :key="'srv-'+si">
+            <button @click="changeServer(srv.link,srv.server,srv.isProxy)"
+              class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter transition flex items-center gap-1.5"
+              :class="preferredServerHost===srv.server?'bg-blue-600 text-white shadow-lg':'bg-[#161922] hover:bg-gray-700'">
+              <i class="fas fa-server text-[8px]"></i><span x-text="srv.server"></span>
+            </button>
+          </template>
+        </div>
+        <!-- Navigation -->
+        <div class="grid grid-cols-3 gap-3 bg-[#161922] p-3 rounded-2xl border border-gray-800 mb-10">
+          <button @click="go('stream',streamData.navigation?.prevEpisode)" :disabled="!streamData.navigation?.prevEpisode"
+            class="bg-[#0f1117] py-3 rounded-xl disabled:opacity-20 font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center gap-1.5">
+            <i class="fas fa-step-backward"></i> Prev
+          </button>
+          <button @click="go('detail',streamData.navigation?.allEpisodes)"
+            class="bg-blue-600 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-1.5">
+            <i class="fas fa-th-list"></i> Semua Eps
+          </button>
+          <button @click="go('stream',streamData.navigation?.nextEpisode)" :disabled="!streamData.navigation?.nextEpisode"
+            class="bg-[#0f1117] py-3 rounded-xl disabled:opacity-20 font-black text-[10px] uppercase tracking-widest transition flex items-center justify-center gap-1.5">
+            Next <i class="fas fa-step-forward"></i>
+          </button>
+        </div>
+        <!-- Downloads -->
+        <div class="bg-[#161922] rounded-[2rem] p-8 border border-gray-800">
+          <h3 class="text-sm font-black uppercase mb-6 flex items-center gap-2"><i class="fas fa-download text-blue-500"></i>Link Download</h3>
+          <div class="space-y-6">
+            <template x-for="(dl,di) in (streamData.downloadLinks||[])" :key="'dlq-'+di">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-4 border-b border-gray-800 pb-4 last:border-0">
+                <div class="bg-blue-600/10 text-blue-500 px-4 py-1 rounded-lg text-xs font-black min-w-[80px] text-center" x-text="dl.quality"></div>
+                <div class="flex flex-wrap gap-2">
+                  <template x-for="(lnk,li) in (dl.links||[])" :key="'dll-'+di+'-'+li">
+                    <a :href="lnk.link" target="_blank" class="bg-[#1f232d] hover:bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-bold transition flex items-center gap-1.5">
+                      <i class="fas fa-cloud-download-alt opacity-60"></i><span x-text="lnk.host"></span>
+                    </a>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== HISTORY ===== -->
+    <template x-if="page==='history'">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-history text-blue-500 text-2xl"></i>
+            <div>
+              <h2 class="text-2xl font-black uppercase italic tracking-tight">Riwayat Nonton</h2>
+              <p class="text-gray-500 text-xs font-bold mt-0.5" x-text="watchHistory.length+' dari 20 tersimpan'"></p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button @click="go('trash')" class="icon-btn text-gray-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 relative">
+              <i class="fas fa-trash-alt"></i> Sampah
+              <span x-show="trashHistory.length>0" class="bg-red-600 text-white text-[9px] px-1.5 rounded-full" x-text="trashHistory.length"></span>
+            </button>
+            <button @click="exportHistory()" class="icon-btn text-gray-400 hover:text-green-400 hover:bg-green-500/10 hover:border-green-500/30">
+              <i class="fas fa-file-export"></i> Export
+            </button>
+            <label class="icon-btn text-gray-400 hover:text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/30 cursor-pointer">
+              <i class="fas fa-file-import"></i> Import
+              <input type="file" accept=".json" class="hidden" @change="importHistory($event)">
+            </label>
+            <button x-show="watchHistory.length>0" @click="confirmClearHistory()" class="icon-btn text-gray-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30">
+              <i class="fas fa-broom"></i> Bersihkan
+            </button>
+          </div>
+        </div>
+        <!-- Empty -->
+        <div x-show="watchHistory.length===0" class="flex flex-col items-center justify-center py-32 text-center">
+          <div class="w-20 h-20 rounded-[1.5rem] bg-[#161922] border border-gray-800 flex items-center justify-center mb-6">
+            <i class="fas fa-film text-3xl text-gray-700"></i>
+          </div>
+          <h3 class="text-lg font-black text-gray-500 uppercase tracking-widest mb-2">Belum ada riwayat</h3>
+          <p class="text-xs text-gray-600 font-bold max-w-xs mb-6">Mulai nonton donghua favoritmu dan riwayatnya akan muncul di sini.</p>
+          <button @click="go('home')" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition">
+            <i class="fas fa-compass mr-2"></i>Jelajahi Donghua
+          </button>
+        </div>
+        <!-- List -->
+        <div x-show="watchHistory.length>0" class="space-y-2">
+          <template x-for="(item,i) in watchHistory" :key="item.seriesTitle+i">
+            <div class="group flex items-center gap-4 bg-[#161922] hover:bg-[#1c2030] border border-gray-800/60 hover:border-blue-600/40 rounded-2xl px-5 py-4 transition cursor-pointer" @click="go('stream',item.url)">
+              <div class="w-8 h-8 rounded-xl bg-[#0f1117] border border-gray-800 flex items-center justify-center flex-shrink-0">
+                <span class="text-[10px] font-black text-gray-600" x-text="i+1"></span>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-black group-hover:text-blue-400 transition leading-tight" x-text="item.seriesTitle"></h4>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <template x-if="item.epNum">
+                    <span class="bg-blue-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black uppercase" x-text="item.epNum"></span>
+                  </template>
+                </div>
+              </div>
+              <div class="flex-shrink-0 text-right hidden sm:block">
+                <p class="text-[10px] font-black text-gray-400" x-text="formatDate(item.watchedAt)"></p>
+                <p class="text-[9px] text-gray-600 font-bold mt-0.5" x-text="formatDate(item.watchedAt,'time')"></p>
+              </div>
+              <div class="flex-shrink-0 sm:hidden">
+                <p class="text-[9px] font-bold text-gray-500" x-text="formatDate(item.watchedAt,'short')"></p>
+              </div>
+              <div class="flex-shrink-0 flex items-center gap-2">
+                <button @click.stop="confirmRemoveHistory(i)" class="w-8 h-8 rounded-xl bg-[#0f1117] hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition text-gray-500 border border-gray-800">
+                  <i class="fas fa-times text-[10px]"></i>
+                </button>
+                <div class="w-8 h-8 rounded-xl bg-blue-600/0 group-hover:bg-blue-600 flex items-center justify-center transition text-gray-700 group-hover:text-white">
+                  <i class="fas fa-play text-[10px] ml-0.5"></i>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== TRASH ===== -->
+    <template x-if="page==='trash'">
+      <div class="max-w-3xl mx-auto">
+        <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+              <i class="fas fa-trash-alt text-red-400 text-lg"></i>
+            </div>
+            <div>
+              <h2 class="text-2xl font-black uppercase italic tracking-tight">Tong Sampah</h2>
+              <p class="text-gray-500 text-xs font-bold mt-0.5">History tersimpan 3 hari sebelum dihapus permanen</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button @click="go('history')" class="icon-btn text-gray-400 hover:text-white">
+              <i class="fas fa-arrow-left text-[10px]"></i> Kembali
+            </button>
+            <button x-show="trashHistory.length>0" @click="restoreAllTrash()" class="icon-btn text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 hover:border-blue-500/30">
+              <i class="fas fa-undo"></i> Restore Semua
+            </button>
+            <button x-show="trashHistory.length>0" @click="confirmEmptyTrash()" class="icon-btn text-gray-500 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30">
+              <i class="fas fa-fire-alt"></i> Kosongkan
+            </button>
+          </div>
+        </div>
+        <div x-show="trashHistory.length===0" class="flex flex-col items-center justify-center py-32 text-center">
+          <div class="w-20 h-20 rounded-[1.5rem] bg-[#161922] border border-gray-800 flex items-center justify-center mb-6">
+            <i class="fas fa-trash text-3xl text-gray-700"></i>
+          </div>
+          <h3 class="text-lg font-black text-gray-500 uppercase tracking-widest mb-2">Tong sampah kosong</h3>
+          <p class="text-xs text-gray-600 font-bold max-w-xs">History yang dihapus akan muncul di sini selama 3 hari.</p>
+        </div>
+        <div x-show="trashHistory.length>0" class="space-y-2">
+          <template x-for="(item,i) in trashHistory" :key="item.seriesTitle+i">
+            <div class="trash-in flex items-center gap-4 bg-[#161922] border border-red-900/30 rounded-2xl px-5 py-4 opacity-90 hover:opacity-100 transition">
+              <div class="w-8 h-8 rounded-xl bg-red-500/10 border border-red-900/40 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-trash-alt text-red-700 text-[10px]"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h4 class="text-sm font-black text-gray-400 leading-tight" x-text="item.seriesTitle"></h4>
+                <div class="flex items-center gap-2 mt-1.5">
+                  <template x-if="item.epNum">
+                    <span class="bg-gray-700 text-gray-400 px-2 py-0.5 rounded-md text-[9px] font-black uppercase" x-text="item.epNum"></span>
+                  </template>
+                  <span class="text-[9px] text-red-700 font-black" x-text="'Hapus '+formatDate(item.deletedAt)"></span>
+                </div>
+              </div>
+              <p class="text-[9px] text-red-800 font-black hidden sm:block" x-text="trashExpiry(item.deletedAt)"></p>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <button @click="restoreFromTrash(i)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 border border-blue-700/30 text-blue-400 hover:text-white text-[10px] font-black uppercase transition">
+                  <i class="fas fa-undo text-[9px]"></i> Restore
+                </button>
+                <button @click="confirmDeletePermanent(i)" class="w-8 h-8 rounded-xl bg-[#0f1117] hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition text-gray-600 border border-gray-800">
+                  <i class="fas fa-times text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <!-- ===== SETTINGS ===== -->
+    <template x-if="page==='settings'">
+      <div class="max-w-2xl mx-auto">
+        <div class="flex items-center gap-4 mb-10">
+          <div class="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
+            <i class="fas fa-cog text-blue-500 text-xl"></i>
+          </div>
+          <div>
+            <h2 class="text-2xl font-black uppercase italic tracking-tight">Setelan Aplikasi</h2>
+            <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Atur preferensi dan data lokal Anda</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Data & Storage -->
+          <div class="bg-[#161922] border border-gray-800 rounded-[2rem] overflow-hidden">
+            <div class="p-6 border-b border-gray-800 bg-[#1a1f2e]/50">
+              <h3 class="text-xs font-black uppercase text-blue-500 flex items-center gap-2">
+                <i class="fas fa-database text-[10px]"></i> Data & Penyimpanan
+              </h3>
+            </div>
+            <div class="p-6 space-y-6">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <h4 class="text-sm font-bold text-gray-200">Hapus Semua Data</h4>
+                  <p class="text-[10px] text-gray-500 mt-1">Bersihkan riwayat nonton, tong sampah, dan preferensi server.</p>
+                </div>
+                <button @click="clearAppData()" class="bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white border border-red-500/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition">
+                  Reset App
+                </button>
+              </div>
+              <div class="pt-6 border-t border-gray-800 flex items-center justify-between">
+                <div>
+                  <h4 class="text-sm font-bold text-gray-200">Server Utama</h4>
+                  <p class="text-[10px] text-gray-500 mt-1" x-text="'Server saat ini: ' + (preferredServerHost || 'Belum dipilih')"></p>
+                </div>
+                <i class="fas fa-server text-gray-700"></i>
+              </div>
+              <div class="pt-6 border-t border-gray-800">
+                <h4 class="text-sm font-bold text-gray-200 mb-4">Tema Aplikasi</h4>
+                <div class="flex flex-wrap gap-3">
+                  <template x-for="t in [
+                    {id:'blue', color:'bg-blue-600', name:'Default'},
+                    {id:'emerald', color:'bg-emerald-500', name:'Emerald'},
+                    {id:'purple', color:'bg-purple-600', name:'Purple'},
+                    {id:'rose', color:'bg-rose-500', name:'Rose'},
+                    {id:'amber', color:'bg-amber-500', name:'Amber'}
+                  ]" :key="t.id">
+                    <button @click="setTheme(t.id)" 
+                      class="flex items-center gap-2 px-3 py-2 rounded-xl border transition overflow-hidden"
+                      :class="theme === t.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#0f1117] hover:border-gray-600'">
+                      <span class="w-4 h-4 rounded-full shadow-inner" :class="t.color"></span>
+                      <span class="text-[10px] font-black uppercase tracking-tighter text-gray-300" x-text="t.name"></span>
+                    </button>
+                  </template>
+
+                  <!-- Rainbow Theme -->
+                  <button @click="setTheme('rainbow')" 
+                    class="flex items-center gap-2 px-3 py-2 rounded-xl border transition overflow-hidden"
+                    :class="theme === 'rainbow' ? 'border-blue-500 bg-blue-500/10' : 'border-gray-800 bg-[#0f1117] hover:border-gray-600'">
+                    <span class="w-4 h-4 rounded-full shadow-inner bg-gradient-to-tr from-red-500 via-green-500 to-blue-500 animate-spin" style="animation-duration: 3s"></span>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-gray-300">Rainbow</span>
+                  </button>
+
+                  <!-- Custom Theme Picker -->
+                  <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-gray-800 bg-[#0f1117] relative overflow-hidden group">
+                    <input type="color" x-model="customColor" @input="setTheme('custom')" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                    <span class="w-4 h-4 rounded-full shadow-inner border border-white/10" :style="'background-color:'+customColor"></span>
+                    <div class="flex flex-col">
+                      <span class="text-[9px] font-black uppercase text-gray-400">Custom</span>
+                      <span class="text-[8px] font-mono text-gray-600 uppercase" x-text="customColor"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="bg-[#161922] border border-gray-800 rounded-[2rem] p-8 text-center">
+            <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
+              <i class="fas fa-tv text-white"></i>
+            </div>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v2.1</span></h3>
+            <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Modern Donghua Streaming Client</p>
+            <div class="flex justify-center gap-4 mt-6">
+              <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
+              <a href="https://wa.me/6283894391287" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-whatsapp"></i></a>
+              <a href="https://PuruBoy-api.vercel.app" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fas fa-globe"></i></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- SCHEDULE PANEL (SIDE MODAL) -->
+    <div x-show="showSchedulePanel" x-cloak class="side-overlay" @click="showSchedulePanel=false"></div>
+    <div class="side-panel" :class="showSchedulePanel ? 'open' : ''" x-cloak>
+      <div class="p-6 border-b border-gray-800 flex items-center justify-between bg-[#161922]">
+        <h2 class="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3">
+          <i class="fas fa-calendar-day text-blue-500"></i>
+          <span>Jadwal Rilis</span>
+        </h2>
+        <button @click="showSchedulePanel=false" class="w-10 h-10 rounded-2xl bg-[#1f232d] hover:bg-red-500/20 hover:text-red-400 transition flex items-center justify-center">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <!-- Day Filter -->
+      <div class="px-6 py-4 bg-[#0f1117] border-b border-gray-800">
+        <select x-model="selectedScheduleDay" class="w-full bg-[#161922] border border-gray-700 rounded-xl px-4 py-2.5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-blue-500 transition cursor-pointer text-gray-300">
+          <option value="all">Semua Hari</option>
+          <option value="Monday">Senin</option>
+          <option value="Tuesday">Selasa</option>
+          <option value="Wednesday">Rabu</option>
+          <option value="Thursday">Kamis</option>
+          <option value="Friday">Jumat</option>
+          <option value="Saturday">Sabtu</option>
+          <option value="Sunday">Minggu</option>
+        </select>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+        <template x-for="day in (selectedScheduleDay === 'all' ? scheduleData : scheduleData.filter(d => d.day === selectedScheduleDay))" :key="day.day">
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <span class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500" x-text="translateDay(day.day)"></span>
+              <div class="h-px flex-1 bg-gray-800"></div>
+              <span class="text-[9px] font-bold text-gray-600" x-text="day.totalCount + ' Series'"></span>
+            </div>
+            
+            <div class="grid gap-2">
+              <template x-for="item in day.list" :key="item.title">
+                <div @click="showSchedulePanel=false; go('detail',item.url)" class="group flex gap-3 p-2.5 rounded-2xl cursor-pointer transition bg-[#161922] border border-gray-800/50 hover:border-blue-500/40">
+                  <div class="w-12 h-16 flex-shrink-0 rounded-xl overflow-hidden bg-[#0f1117]">
+                     <img :src="item.thumbnail" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex-1 min-w-0 flex flex-col justify-center">
+                    <p class="text-[11px] font-bold line-clamp-1 text-gray-300 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></p>
+                    <div class="flex items-center justify-between mt-2">
+                       <p class="text-[9px] text-gray-500 font-black uppercase flex items-center gap-1">
+                         <i class="far fa-clock text-[8px]"></i>
+                         <span x-text="item.releaseTime"></span>
+                       </p>
+                       <template x-if="item.nextEpisode && item.nextEpisode !== '??'">
+                         <span class="text-[8px] bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded-lg font-black" x-text="'EP '+item.nextEpisode"></span>
+                       </template>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+
+  </div>
+</main>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="md:hidden fixed bottom-0 w-full glass border-t border-gray-800 z-50 flex justify-around items-center py-4 rounded-t-3xl shadow-2xl">
+  <template x-for="n in navLinks.filter(x=>x.mobile)" :key="'mn-'+n.view">
+    <a href="#" @click.prevent="go(n.view)" class="flex flex-col items-center gap-1 relative transition-colors duration-300" :class="isActive(n.match)?'text-blue-500':'text-gray-500'">
+      <span class="relative transition-transform duration-300" :class="isActive(n.match) ? 'scale-125 -translate-y-1.5' : ''">
+        <i :class="n.icon+' text-xl'"></i>
+        <span x-show="n.view==='history'&&watchHistory.length>0" x-cloak class="absolute -top-1.5 -right-2.5 bg-blue-600 text-white text-[8px] font-black px-1 rounded-full" x-text="watchHistory.length"></span>
+      </span>
+      <span class="text-[9px] font-black uppercase" x-text="n.label"></span>
+    </a>
+  </template>
+</nav>
+
+<!-- CONFIRM MODAL -->
+<div x-show="confirmModal.show" x-cloak class="confirm-overlay" @click.self="confirmModal.show=false">
+  <div class="confirm-panel">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" :class="confirmModal.danger?'bg-red-500/15 border border-red-500/30':'bg-yellow-500/15 border border-yellow-500/30'">
+        <i class="text-lg" :class="confirmModal.danger?'fas fa-exclamation-triangle text-red-400':'fas fa-question-circle text-yellow-400'"></i>
+      </div>
+      <div>
+        <h3 class="font-black text-white text-base leading-tight" x-text="confirmModal.title"></h3>
+        <p class="text-gray-500 text-xs font-bold mt-0.5" x-text="confirmModal.subtitle"></p>
+      </div>
+    </div>
+    <p class="text-gray-400 text-sm mb-6 leading-relaxed" x-text="confirmModal.message"></p>
+    <div class="flex gap-3">
+      <button @click="confirmModal.show=false" class="flex-1 py-3 rounded-xl bg-[#1f232d] hover:bg-gray-700 text-gray-300 font-black text-xs uppercase tracking-widest transition">
+        <i class="fas fa-times mr-1"></i>Batal
+      </button>
+      <button @click="confirmModal.action();confirmModal.show=false" class="flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition" :class="confirmModal.danger?'bg-red-600 hover:bg-red-700 text-white':'bg-blue-600 hover:bg-blue-700 text-white'" x-text="confirmModal.confirmText"></button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div x-show="importToast.show" x-cloak x-transition class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2" :class="importToast.ok?'bg-green-600 text-white':'bg-red-600 text-white'">
+  <i :class="importToast.ok?'fas fa-check-circle':'fas fa-times-circle'"></i>
+  <span x-text="importToast.msg"></span>
+</div>
+
+<!-- AI PANEL MODAL -->
+<div x-show="aiPanel" x-cloak class="ai-overlay" @click.self="aiPanel=false">
+  <div class="ai-panel">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
+          <i class="fas fa-robot text-white text-sm"></i>
+        </div>
+        <div>
+          <p class="text-[10px] text-blue-400 font-black uppercase tracking-widest" x-text="'AI Gemini - '+currentType"></p>
+          <h4 class="text-sm font-black text-white leading-tight" x-text="'Penjelasan: '+aiTitle"></h4>
+        </div>
+      </div>
+      <button @click="aiPanel=false" class="w-9 h-9 rounded-xl bg-[#1f232d] hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition text-gray-400">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+    <div x-show="aiLoading" class="py-16 flex flex-col items-center gap-4">
+      <div class="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+      <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest animate-pulse">AI sedang menganalisis...</p>
+    </div>
+    <div x-show="!aiLoading&&aiError" x-cloak class="py-8 text-center">
+      <i class="fas fa-exclamation-triangle text-3xl text-yellow-500 mb-3"></i>
+      <p class="text-sm text-gray-400" x-text="aiError"></p>
+      <button @click="openAIPanel(aiTitle)" class="mt-4 bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-xl text-xs font-black uppercase transition">
+        <i class="fas fa-redo mr-1"></i>Coba Lagi
+      </button>
+    </div>
+    <div x-show="!aiLoading&&!aiError&&aiResult" x-cloak>
+      <div class="border-t border-gray-800 mb-6"></div>
+      <div class="md-content" x-html="typeof marked!=='undefined'?aiResult:''"></div>
+      <div x-show="aiChoices.length>0" class="mt-6 pt-5 border-t border-blue-900/40">
+        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+          <i class="fas fa-hand-pointer"></i>Pertanyaan lanjutan
+        </p>
+        <div class="flex flex-col gap-2">
+          <template x-for="(choice,i) in aiChoices" :key="i">
+            <button @click="askFollowUp(choice)" class="w-full text-left flex items-start gap-3 bg-[#1a1f2e] hover:bg-blue-600/20 border border-gray-800 hover:border-blue-500/50 px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition group">
+              <span class="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-600/20 group-hover:bg-blue-600 flex items-center justify-center text-blue-400 group-hover:text-white font-black text-[10px] transition" x-text="i+1"></span>
+              <span x-text="choice" class="leading-snug pt-0.5"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+      <div class="mt-6 pt-4 border-t border-gray-800 flex items-center gap-2">
+        <i class="fas fa-circle-info text-gray-600 text-xs"></i>
+        <p class="text-[10px] text-gray-600 font-bold">Jawaban dihasilkan oleh AI. Bisa saja tidak 100% akurat.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARED CSS UTILITIES via Tailwind arbitrary classes need to be inline -->
+<style>
+.sec-head{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem}
+.card-poster{background:var(--card);border-radius:1.25rem;overflow:hidden;cursor:pointer;transition:all .4s cubic-bezier(0.175, 0.885, 0.32, 1.275);border:1px solid rgba(255,255,255,0.03);position:relative}
+.card-poster:hover{transform:translateY(-8px);box-shadow:0 20px 25px -5px rgba(0,0,0,0.5), 0 10px 10px -5px rgba(59,130,246,0.2);border-color:rgba(59,130,246,0.4)}
+.card-poster img{transition:transform .6s cubic-bezier(0.4, 0, 0.2, 1)}
+.card-poster:hover img{transform:scale(1.1)}
+.ep-badge{position:absolute;top:.75rem;left:.75rem;color:#fff;font-size:.6rem;font-weight:900;padding:.2rem .6rem;border-radius:.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.5);z-index:10}
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:.3s;background:linear-gradient(to top, rgba(59,130,246,0.4), transparent);z-index:5}
+.card-poster:hover .play-overlay{opacity:1}
+.icon-btn{display:flex;align-items:center;gap:.5rem;font-size:.75rem;font-weight:900;text-transform:uppercase;letter-spacing:.1em;background:var(--card);border:1px solid #374151;padding:.5rem 1rem;border-radius:.75rem;transition:all .2s}
+
+/* Side Schedule Panel */
+.side-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.7);backdrop-filter:blur(4px)}
+.side-panel{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:400px;background:var(--bg);z-index:160;border-left:1px solid var(--border);box-shadow:-20px 0 40px rgba(0,0,0,0.6);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .5s cubic-bezier(0.16,1,0.3,1)}
+.side-panel.open{transform:translateX(0)}
+.custom-scrollbar::-webkit-scrollbar{display:none}
+</style>
+
+<script>
+function puruTVApp() {
+  return {
+    title: 'PurTV',
+    page: 'home', loading: true, sliderIndex: 0,
+    showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
+    activeServer: '', currentPage: 1, hasNextPage: false, theme: 'blue',
+    customColor: '#3b82f6',
+    homeData: {
+      featuredSlider: [
+        { title: "Wu Geng Ji Season 1", url: "/seri/wu-geng-ji-season-1/", thumbnail: "https://i3.wp.com/anichin.cafe/wp-content/uploads/2023/11/Wu-Geng-Ji-Season-1-HD.jpg", color: "#3b82f6", description: "Seorang utusan Surga telah tiba di Zhao Ge, yang telah diperintah oleh dinasti Shang selama beberapa generasi. Kaisar saat ini, Zi Zhou, menolak untuk menundukkan kepalanya di hadapan para dewa,…" },
+        { title: "Soul Land 2: The Unrivaled Tang Sect", url: "/seri/soul-land-2-the-unrivaled-tang-sect/", thumbnail: "https://i3.wp.com/anichin.cafe/wp-content/uploads/2023/07/Soul-Land-s2-Cover.jpg", color: "#a855f7", description: "Dunia tanpa sihir, tanpa Dou-Qi, tanpa seni bela diri, tetapi dengan Essence Spirits. Di Benua Douluo sepuluh ribu tahun setelah Sekte Tang didirikan, Sekte Tang menurun..." },
+        { title: "Quanzhi Fashi Season 3", url: "/seri/quanzhi-fashi-season-3/", thumbnail: "https://i2.wp.com/anichin.cafe/wp-content/uploads/2023/11/Quanzhi-Fashi-Season-3.jpg", color: "#10b981", description: "Season ke-3 Quanzhi Fashi (Full-Time Magister) Setelah krisis yang ditimbulkan oleh Orde Hitam, penduduk Kota Bo yang masih hidup meninggalkan tempat tersebut..." },
+        { title: "Perfect World", url: "/seri/perfect-world/", thumbnail: "https://anichin.cafe/wp-content/uploads/2021/04/Perfect-World-Cover.webp", color: "#f59e0b", description: "Donghua “Perfect World” diadaptasi dari novel dengan judul yang sama. Dia dilahirkan untuk mengolah Tao, dan untuk malapetaka, dia berubah menjadi hujan ribuan darah..." },
+        { title: "Yi Nian Yong Heng", url: "/seri/yi-nian-yong-heng/", thumbnail: "https://anichin.cafe/wp-content/uploads/2023/11/Yi-Nian-Yong-Heng-Cover.webp", color: "#f43f5e", description: "Yi Nian Yong Heng (A Will Eternal) Menceritakan kisah Bai Xiaochun, bisa dibilang Bai Xiaochun adalah seorang cowok yang pengecut, takut mati makanya dia mengejar keabadian..." }
+      ],
+      popularToday: [
+        { title: "Perfect World", episode: "Ep 261", url: "/perfect-world-episode-261-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2021/04/Perfect-World.webp" },
+        { title: "Renegade Immortal", episode: "Ep 133", url: "/renegade-immortal-episode-133-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2023/09/Renegade-Immortal-sub-indo.webp" },
+        { title: "In Search of Gods", episode: "Ep 03", url: "/in-search-of-gods-episode-03-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2026/03/In-Search-of-Gods.webp" },
+        { title: "Tomb of Fallen Gods Season 3", episode: "Ep 35", url: "/tomb-of-fallen-gods-season-3-episode-35-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2025/08/Tomb-of-Fallen-Gods-Season-3.webp" },
+        { title: "Tales of Herding Gods", episode: "Ep 75", url: "/tales-of-herding-gods-episode-75-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2024/10/Tales-of-Hearding-God.webp" }
+      ],
+      latestReleases: [
+        { title: "Azure Legacy", episode: "Ep 69", url: "/azure-legacy-episode-69-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2023/06/Azure-Legacy-Season-2.webp" },
+        { title: "The Great Ruler 3D", episode: "Ep 66", url: "/the-great-ruler-3d-episode-66-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2023/07/The-Great-Ruler-3D.webp" },
+        { title: "Perfect World", episode: "Ep 261", url: "/perfect-world-episode-261-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2021/04/Perfect-World.webp" },
+        { title: "My Senior Brother Is Too Steady", episode: "Ep 134", url: "/my-senior-brother-is-too-steady-episode-134-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2023/12/Senior-Brother-2.webp" },
+        { title: "Throne of Seal", episode: "Ep 204", url: "/throne-of-seal-episode-204-subtitle-indonesia/", thumbnail: "https://anichin.cafe/wp-content/uploads/2022/04/throne-of-seal-sub-indo.webp" }
+      ],
+      ongoingSidebar: [
+        { title: "Azure Legacy", episode: "Episode 69", url: "/azure-legacy-episode-69-subtitle-indonesia/" },
+        { title: "The Great Ruler 3D", episode: "Episode 66", url: "/the-great-ruler-3d-episode-66-subtitle-indonesia/" },
+        { title: "Perfect World", episode: "Episode 261", url: "/perfect-world-episode-261-subtitle-indonesia/" },
+        { title: "Shrouding the Heavens", episode: "Episode 154", url: "/shrouding-the-heavens-episode-154-subtitle-indonesia/" },
+        { title: "Swallowed Star Season 4", episode: "Episode 216", url: "/swallowed-star-episode-216-subtitle-indonesia/" }
+      ]
+    }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
+    streamData: { navigation:{} }, scheduleData: [],
+    allGenres: [], listData: [],
+    preferredServerHost: '', searchTitle: '',
+    aiPanel: false, aiLoading: false, aiResult: '', aiError: '', aiTitle: '', aiChoices: [],
+
+    showSchedulePanel: false,
+    selectedScheduleDay: 'all',
+    watchHistory: [], trashHistory: [],
+
+    confirmModal: { show:false, title:'', subtitle:'', message:'', confirmText:'Hapus', danger:true, action:()=>{} },
+    importToast: { show:false, ok:true, msg:'' },
+
+    navLinks: [
+      { view:'home',   label:'Home',    icon:'fas fa-home',         match:['home'],              mobile:true  },
+      { view:'genres', label:'Genre',   icon:'fas fa-layer-group',  match:['genres','results'],  mobile:true  },
+      { view:'history',label:'History', icon:'fas fa-history',      match:['history','trash'],   mobile:true  },
+      { view:'settings',label:'Setelan',icon:'fas fa-cog',          match:['settings'],          mobile:true  },
+    ],
+
+    isActive(matches) { return matches.includes(this.page); },
+
+    nextSlide() {
+      if (!this.homeData.featuredSlider) return;
+      this.sliderIndex = (this.sliderIndex + 1) % this.homeData.featuredSlider.length;
+    },
+
+    prevSlide() {
+      if (!this.homeData.featuredSlider) return;
+      this.sliderIndex = (this.sliderIndex - 1 + this.homeData.featuredSlider.length) % this.homeData.featuredSlider.length;
+    },
+
+    translateDay(d) {
+      const days = { Monday: 'Senin', Tuesday: 'Selasa', Wednesday: 'Rabu', Thursday: 'Kamis', Friday: 'Jumat', Saturday: 'Sabtu', Sunday: 'Minggu' };
+      return days[d] || d;
+    },
+
+    get currentType() { return 'Donghua'; },
+
+    init() {
+      this.watchHistory  = JSON.parse(localStorage.getItem('puruTV_history') || '[]');
+      this.trashHistory  = JSON.parse(localStorage.getItem('puruTV_trash')   || '[]');
+      this.preferredServerHost = localStorage.getItem('puruTV_preferredServer') || '';
+      this.theme = localStorage.getItem('puruTV_theme') || 'blue';
+      this.customColor = localStorage.getItem('puruTV_customColor') || '#3b82f6';
+      this.applyTheme();
+      this._purgeExpiredTrash();
+      this.fetchSchedule();
+      window.addEventListener('hashchange', () => this.routeHandler());
+      this.routeHandler();
+      
+      // Remove Splash Screen after everything is ready
+      setTimeout(() => {
+        const splash = document.getElementById('pur-splash');
+        if (splash) {
+          splash.classList.add('fade-out');
+          setTimeout(() => splash.remove(), 400);
+        }
+      }, 600);
+    },
+
+    setTheme(t) {
+      this.theme = t;
+      localStorage.setItem('puruTV_theme', t);
+      if (t === 'custom') localStorage.setItem('puruTV_customColor', this.customColor);
+      if (t === 'rainbow') {
+        const rb = Array.from({length:4}, () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0'));
+        localStorage.setItem('puruTV_rainbow', JSON.stringify(rb));
+      }
+      this.applyTheme();
+    },
+
+    hexToRgb(hex) {
+      let r = 0, g = 0, b = 0;
+      hex = hex.replace('#', '');
+      if (hex.length === 3) {
+        r = parseInt(hex[0] + hex[0], 16);
+        g = parseInt(hex[1] + hex[1], 16);
+        b = parseInt(hex[2] + hex[2], 16);
+      } else {
+        r = parseInt(hex.substring(0, 2), 16);
+        g = parseInt(hex.substring(2, 4), 16);
+        b = parseInt(hex.substring(4, 6), 16);
+      }
+      return `${r}, ${g}, ${b}`;
+    },
+
+    applyTheme() {
+      const themes = ['theme-blue', 'theme-emerald', 'theme-purple', 'theme-rose', 'theme-amber', 'theme-custom', 'theme-rainbow'];
+      document.body.classList.remove(...themes);
+      
+      if(this.theme === 'custom') {
+        document.body.style.setProperty('--c-color', this.customColor);
+        document.body.style.setProperty('--c-rgb', this.hexToRgb(this.customColor));
+        document.body.classList.add('theme-custom');
+      } else if(this.theme === 'rainbow') {
+        let rb = JSON.parse(localStorage.getItem('puruTV_rainbow') || '["#ef4444","#10b981","#3b82f6","#f59e0b"]');
+        rb.forEach((c, i) => {
+          document.body.style.setProperty(`--rb-${i+1}`, c);
+          document.body.style.setProperty(`--rb-${i+1}-rgb`, this.hexToRgb(c));
+        });
+        document.body.classList.add('theme-rainbow');
+      } else if(this.theme !== 'blue') {
+        document.body.classList.add('theme-' + this.theme);
+      }
+    },
+
+    cleanTitle(t) { return t ? t.split('\t')[0].trim() : ''; },
+
+    formatDate(iso, type='full') {
+      if (!iso) return '-';
+      const d=new Date(iso), diff=(Date.now()-d)/60000;
+      if (type==='time') return d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});
+      if (type==='short') {
+        if (diff<1) return 'Baru saja';
+        if (diff<60) return `${Math.floor(diff)} mnt lalu`;
+        if (diff<1440) return `${Math.floor(diff/60)} jam lalu`;
+        return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short'});
+      }
+      return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
+    },
+
+    async routeHandler() {
+      const [view,query] = (window.location.hash||'#home').split('?');
+      const params = new URLSearchParams(query||'');
+      const url=params.get('url'), slug=params.get('slug'), q=params.get('q'), page=+params.get('page')||1;
+      Object.assign(this,{homeData:{},animeDetail:{},streamData:{},listData:[],scheduleData:[],loading:true,aiPanel:false,currentPage:page});
+      try {
+        this.page = view.slice(1)||'home';
+        if      (this.page==='home')     await this.fetchHome();
+        else if (this.page==='detail')   await this.fetchDetail(url);
+        else if (this.page==='stream')   await this.fetchStream(url);
+        else if (this.page==='schedule') await this.fetchSchedule();
+        else if (this.page==='genres')   await this.fetchGenres();
+        else if (this.page==='genre')    { this.page='results'; await this.fetchByGenre(slug,page); }
+        else if (this.page==='search')   { this.page='results'; await this.fetchSearch(q,page); }
+        else if (this.page==='trash')    this._purgeExpiredTrash();
+      } catch(e){ console.error(e); }
+      this.loading=false; window.scrollTo(0,0);
+    },
+
+    go(view, paramValue) {
+      if (view === 'schedule') {
+        this.showSchedulePanel = true;
+        if (!this.scheduleData.length) this.fetchSchedule();
+        return;
+      }
+      if (view==='detail'||view==='stream') {
+        let p = paramValue||'';
+        if (p.includes('url=')) p = p.split('url=')[1];
+        else if (p.includes('://')) { try { p = new URL(p).pathname; } catch(e){} }
+        window.location.hash = `#${view}?url=${encodeURIComponent(p)}`;
+      } else if (view==='genre') {
+        window.location.hash = `#genre?slug=${paramValue}&page=1`;
+      } else {
+        window.location.hash = `#${view}`;
+      }
+    },
+
+    changePage(n) {
+      const params=new URLSearchParams(window.location.hash.split('?')[1]);
+      params.set('page',n);
+      window.location.hash = `${window.location.hash.split('?')[0]}?${params}`;
+    },
+
+    async fetchSuggestions() {
+      if (this.searchQuery.length<2) { this.suggestions=[]; this.showSuggestions=false; return; }
+      try {
+        const d=await fetch(`https://puruboy-api.vercel.app/api/search/suggest?q=${encodeURIComponent(this.searchQuery)}`).then(r=>r.json());
+        if (d.success) { this.suggestions=d.result; this.showSuggestions=true; }
+      } catch(e){}
+    },
+
+    startSearch() {
+      if (this.searchQuery.length<2) return;
+      window.location.hash=`#search?q=${this.searchQuery}&page=1`;
+      this.searchQuery=''; this.suggestions=[]; this.showSuggestions=false;
+    },
+
+    parseAIJson(raw) {
+      let s=raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
+      const a=s.indexOf('{'),b=s.lastIndexOf('}');
+      if (a===-1||b===-1) return null;
+      try {
+        const p=JSON.parse(s.substring(a,b+1));
+        return { respon:p.respon||p.response||p.jawaban||'', choice:Array.isArray(p.choice)?p.choice:[] };
+      } catch(e){ return null; }
+    },
+
+    async openAIPanel(title) {
+      this.aiTitle=this.cleanTitle(title); this.aiPanel=true; this.aiLoading=true;
+      this.aiResult=''; this.aiError=''; this.aiChoices.splice(0);
+      const t=this.currentType;
+      await this._sendAIMessage(`Kamu adalah asisten AI spesialis ${t.toLowerCase()}. Jawab dalam Bahasa Indonesia. HANYA balas dengan JSON valid tanpa teks lain. Format: {"respon":"<markdown>","choice":["<p1>","<p2>","<p3>"]}. Pertanyaan: ${t} "${this.aiTitle}" menceritakan tentang apa? Jelaskan sinopsis, karakter, tema, hal menarik.`);
+    },
+
+    async askFollowUp(choice) {
+      if (this.aiLoading) return;
+      this.aiLoading=true; this.aiChoices.splice(0);
+      const t=this.currentType;
+      await this._sendAIMessage(`Kamu adalah asisten AI spesialis ${t.toLowerCase()}. Bahasa Indonesia. HANYA JSON valid. Format: {"respon":"<markdown>","choice":["<p1>","<p2>","<p3>"]}. Konteks: ${t.toLowerCase()} "${this.aiTitle}". Pertanyaan: ${choice}`);
+    },
+
+    async _sendAIMessage(prompt) {
+      try {
+        const d=await fetch('https://puruboy-api.vercel.app/api/ai/gemini',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt})}).then(r=>r.json());
+        if (d.success&&d.result?.answer) {
+          const parsed=this.parseAIJson(d.result.answer);
+          const hasMarked = typeof marked !== 'undefined';
+          if (parsed?.respon) { 
+            this.aiResult = hasMarked ? marked.parse(parsed.respon) : parsed.respon; 
+            this.aiChoices.splice(0,this.aiChoices.length,...parsed.choice); 
+          } else { 
+            this.aiResult = hasMarked ? marked.parse(d.result.answer) : d.result.answer; 
+            this.aiChoices.splice(0); 
+          }
+        } else { this.aiError='Gagal mendapat respons AI. Silakan coba lagi.'; }
+      } catch(e){ this.aiError='Koneksi gagal. Pastikan internet aktif.'; }
+      finally { this.aiLoading=false; }
+    },
+
+    _saveAll() {
+      localStorage.setItem('puruTV_history',JSON.stringify(this.watchHistory));
+      localStorage.setItem('puruTV_trash',  JSON.stringify(this.trashHistory));
+    },
+
+    _purgeExpiredTrash() {
+      const limit=3*24*60*60*1000;
+      this.trashHistory=this.trashHistory.filter(i=>i.deletedAt&&(Date.now()-new Date(i.deletedAt).getTime())<limit);
+      localStorage.setItem('puruTV_trash',JSON.stringify(this.trashHistory));
+    },
+
+    trashExpiry(deletedAt) {
+      if (!deletedAt) return '';
+      const diff=new Date(new Date(deletedAt).getTime()+3*24*60*60*1000)-Date.now();
+      if (diff<=0) return 'Kedaluwarsa';
+      const h=Math.floor(diff/3600000);
+      return h<24?`Hapus dalam ${h}j`:`Hapus dalam ${Math.floor(h/24)}h`;
+    },
+
+    saveHistory() {
+      const s=this.streamData;
+      if (!s?.series) return;
+      const seriesTitle=this.cleanTitle(s.series), episode=s.title||'', watchedAt=new Date().toISOString();
+      const urlParam=new URLSearchParams((window.location.hash.split('?')[1]||'')).get('url')||'';
+      let epNum='';
+      const m=urlParam.match(/episode-(\d+)/);
+      if (m) epNum='Ep. '+m[1];
+      else if (episode.toLowerCase().includes('episode')) epNum='Ep. '+(episode.split(/episode/i)[1]||'').trim().split(' ')[0];
+      const idx=this.watchHistory.findIndex(h=>h.seriesTitle===seriesTitle);
+      if (idx!==-1) this.watchHistory.splice(idx,1);
+      this.watchHistory.unshift({seriesTitle,episode,epNum,watchedAt,url:urlParam});
+      if (this.watchHistory.length>20) this.watchHistory.length=20;
+      this._saveAll();
+    },
+
+    _confirm(opts) { this.confirmModal={show:true,...opts}; },
+
+    confirmRemoveHistory(i) {
+      this._confirm({danger:true,title:'Hapus Riwayat?',subtitle:this.watchHistory[i].seriesTitle,message:'History ini akan dipindahkan ke Tong Sampah dan bisa dikembalikan dalam 3 hari.',confirmText:'Pindah ke Sampah',action:()=>this.removeHistory(i)});
+    },
+    confirmClearHistory() {
+      this._confirm({danger:true,title:'Hapus Semua Riwayat?',subtitle:`${this.watchHistory.length} riwayat akan dihapus`,message:'Semua history akan dipindahkan ke Tong Sampah selama 3 hari.',confirmText:'Hapus Semua',action:()=>this.clearHistory()});
+    },
+    confirmEmptyTrash() {
+      this._confirm({danger:true,title:'Kosongkan Tong Sampah?',subtitle:`${this.trashHistory.length} item dihapus permanen`,message:'Tindakan ini tidak bisa dibatalkan.',confirmText:'Hapus Permanen',action:()=>this.emptyTrash()});
+    },
+    confirmDeletePermanent(i) {
+      this._confirm({danger:true,title:'Hapus Permanen?',subtitle:this.trashHistory[i].seriesTitle,message:'History ini akan dihapus selamanya dan tidak bisa dikembalikan.',confirmText:'Hapus Permanen',action:()=>{this.trashHistory.splice(i,1);this._saveAll();}});
+    },
+
+    removeHistory(i) { const [r]=this.watchHistory.splice(i,1); r.deletedAt=new Date().toISOString(); this.trashHistory.unshift(r); this._saveAll(); },
+    clearHistory() { const now=new Date().toISOString(); this.trashHistory.unshift(...this.watchHistory.map(h=>({...h,deletedAt:now}))); this.watchHistory=[]; this._saveAll(); },
+    restoreFromTrash(i) {
+      const item={...this.trashHistory[i]}; delete item.deletedAt; this.trashHistory.splice(i,1);
+      const dup=this.watchHistory.findIndex(h=>h.seriesTitle===item.seriesTitle);
+      if (dup!==-1) this.watchHistory.splice(dup,1);
+      this.watchHistory.unshift(item); if (this.watchHistory.length>20) this.watchHistory.length=20; this._saveAll();
+    },
+    restoreAllTrash() {
+      this.trashHistory.forEach(item=>{const c={...item};delete c.deletedAt;const d=this.watchHistory.findIndex(h=>h.seriesTitle===c.seriesTitle);if(d!==-1)this.watchHistory.splice(d,1);this.watchHistory.unshift(c);});
+      if (this.watchHistory.length>20) this.watchHistory.length=20; this.trashHistory=[]; this._saveAll();
+    },
+    emptyTrash() { this.trashHistory=[]; this._saveAll(); },
+
+    exportHistory() {
+      const blob=new Blob([JSON.stringify({exported:new Date().toISOString(),version:1,history:this.watchHistory},null,2)],{type:'application/json'});
+      const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:`puruTV-history-${new Date().toISOString().slice(0,10)}.json`});
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    },
+
+    importHistory(event) {
+      const file=event.target.files[0]; if (!file) return;
+      const r=new FileReader();
+      r.onload=e=>{
+        try {
+          const parsed=JSON.parse(e.target.result), items=parsed.history||(Array.isArray(parsed)?parsed:null);
+          if (!items) throw new Error();
+          let added=0;
+          items.forEach(item=>{ if(!item.seriesTitle)return; const d=this.watchHistory.findIndex(h=>h.seriesTitle===item.seriesTitle); if(d!==-1)this.watchHistory.splice(d,1); this.watchHistory.push(item); added++; });
+          this.watchHistory.sort((a,b)=>new Date(b.watchedAt)-new Date(a.watchedAt));
+          if (this.watchHistory.length>20) this.watchHistory.length=20;
+          this._saveAll(); this._showToast(true,`${added} riwayat berhasil diimpor!`);
+        } catch(e){ this._showToast(false,'File tidak valid atau rusak.'); }
+        event.target.value='';
+      };
+      r.readAsText(file);
+    },
+
+    _showToast(ok,msg) { this.importToast={show:true,ok,msg}; setTimeout(()=>this.importToast.show=false,3000); },
+
+    clearAppData() {
+      this._confirm({
+        danger: true,
+        title: 'Reset Aplikasi?',
+        subtitle: 'Semua data akan dihapus',
+        message: 'Tindakan ini akan menghapus seluruh riwayat nonton, daftar sampah, dan preferensi server yang tersimpan di browser ini secara permanen.',
+        confirmText: 'Hapus Permanen',
+        action: () => {
+          localStorage.removeItem('puruTV_history');
+          localStorage.removeItem('puruTV_trash');
+          localStorage.removeItem('puruTV_preferredServer');
+          this.watchHistory = [];
+          this.trashHistory = [];
+          this.preferredServerHost = '';
+          this._showToast(true, 'Data berhasil dibersihkan!');
+          this.go('home');
+        }
+      });
+    },
+
+    async fetchHome() { const d=await fetch('https://puruboy-api.vercel.app/api/anime/anichin/home').then(r=>r.json()); this.homeData=d.result; },
+    async fetchGenres() { const d=await fetch('https://puruboy-api.vercel.app/api/anime/anichin/genres').then(r=>r.json()); this.allGenres=d.result; },
+    async fetchByGenre(slug,page) {
+      this.searchTitle=`Genre: ${slug.replace(/-/g,' ')}`;
+      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/genre?slug=${slug}&page=${page}`).then(r=>r.json());
+      this.listData=d.result.data; this.hasNextPage=d.result.hasNextPage;
+    },
+    async fetchSearch(q,page) {
+      this.searchTitle=`Hasil Cari: ${q}`;
+      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/search?q=${q}&page=${page}`).then(r=>r.json());
+      this.listData=d.result.data;
+      this.hasNextPage=d.result.hasNextPage;
+    },
+    async fetchDetail(url) {
+      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/detail?url=${encodeURIComponent(decodeURIComponent(url))}`).then(r=>r.json());
+      this.animeDetail=d.result;
+    },
+    async fetchStream(url) {
+      const rawUrl=decodeURIComponent(url);
+      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/stream?url=${encodeURIComponent(rawUrl)}`).then(r=>r.json());
+      this.streamData=d.result;
+      const links=this.streamData.streamingLinks||[];
+      const pref=links.findIndex(s=>s.server===this.preferredServerHost);
+      const start=pref!==-1?links[pref]:(links[0]||null);
+      if (start) this.changeServer(start.link,start.server,start.isProxy);
+      this.saveHistory();
+    },
+    async fetchSchedule() {
+      try {
+        const a=await fetch('https://puruboy-api.vercel.app/api/anime/anichin/schedule').then(r=>r.json());
+        if (a.success) this.scheduleData=a.result;
+      } catch(e){}
+    },
+    async changeServer(link,serverName,isProxy=false) {
+      this.preferredServerHost=serverName;
+      localStorage.setItem('puruTV_preferredServer',serverName);
+      if (isProxy) {
+        try { const d=await fetch(link).then(r=>r.json()); this.activeServer=d.result.embed_url; }
+        catch(e){}
+      } else { this.activeServer=link; }
+    }
+  }
+}
+</script>
+</body>
+</html>
