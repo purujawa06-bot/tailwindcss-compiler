@@ -11,20 +11,6 @@
 <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/1038/1038100.png">
 <link rel="manifest" href='data:application/manifest+json,{"name":"PurTV Donghua","short_name":"PurTV","description":"Refactored - Modern & Compact","start_url":".","display":"standalone","background_color":"#0f1117","theme_color":"#3b82f6","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/1038/1038100.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
 <title x-text="title">PurTV - Nonton Donghua Sub Indo</title>
-<script>
-  /* Tailwind CDN Warning Suppressor (Caching Disabled) */
-  (function() {
-    // Suppress Tailwind CDN warnings only
-    const originalWarn = console.warn;
-    console.warn = (...args) => {
-      if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
-      originalWarn(...args);
-    };
-    
-    // Clear any existing legacy cache
-    localStorage.removeItem('purtv_tw_cache');
-  })();
-</script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -132,7 +118,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 </head>
 <body class="text-gray-200 font-sans antialiased">
 
-<!-- INITIAL SPLASH LOADER (Vanilla CSS) -->
 <div id="pur-splash">
   <div class="wave-wrap">
     <div class="wave-txt">PurTV</div>
@@ -140,7 +125,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
   </div>
 </div>
 
-<!-- DESKTOP HEADER -->
 <header class="hidden md:block bg-[#161922] border-b border-gray-800 sticky top-0 z-50">
   <div class="container mx-auto px-4 py-4 flex items-center justify-between">
     <div class="flex items-center gap-2 cursor-pointer" @click="go('home')">
@@ -172,7 +156,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
   </div>
 </header>
 
-<!-- MOBILE HEADER -->
 <div class="md:hidden bg-[#161922] p-4 flex justify-between items-center sticky top-0 z-50 border-b border-gray-800">
   <span class="text-xl font-black text-white tracking-tighter cursor-pointer flex items-center gap-2" @click="go('home')">
     <i class="fas fa-tv text-blue-500"></i>
@@ -184,7 +167,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
   </div>
 </div>
 
-<!-- MOBILE SEARCH BAR -->
 <div x-show="showSearch" x-transition x-cloak class="md:hidden fixed top-[65px] left-0 right-0 z-50 p-4 bg-[#1f232d] border-b border-gray-800 shadow-2xl" @click.away="showSuggestions=false">
   <input type="text" x-model="searchQuery" @input.debounce.300ms="fetchSuggestions()" @keyup.enter="startSearch();showSearch=false" @keyup.escape="showSearch=false" placeholder="Ketik judul donghua..." class="w-full bg-[#0f1117] border border-gray-700 rounded-xl py-3 px-4 focus:border-blue-500 outline-none text-sm" x-ref="searchInput" x-effect="showSearch&&$nextTick(()=>$refs.searchInput.focus())">
   <div x-show="showSuggestions&&suggestions.length>0" class="mt-2 bg-[#161922] border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
@@ -197,7 +179,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 <!-- MAIN -->
 <main class="container mx-auto px-4 py-8">
 
-  <!-- LOADER -->
   <div x-show="loading" x-cloak>
     <div class="wave-wrap">
       <div class="wave-txt">PurTV</div>
