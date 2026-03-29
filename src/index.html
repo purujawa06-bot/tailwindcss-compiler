@@ -55,9 +55,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 [class*="theme-"] .border-blue-500\/20,[class*="theme-"] .border-blue-500\/50,[class*="theme-"] .border-blue-600\/40{border-color:rgba(var(--blue-rgb),.3)!important}
 [class*="theme-"] .shadow-blue-600\/30,[class*="theme-"] .shadow-blue-500\/20{--tw-shadow-color:rgba(var(--blue-rgb),.4)!important}
 
-.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.line-clamp-1{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-
 /* AI Modal */
 .ai-overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center}
 @media(min-width:768px){.ai-overlay{align-items:center}}
@@ -255,6 +252,44 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
           </div>
         </section>
 
+        <!-- Anime Populer (Samehadaku) -->
+        <section x-show="homeData.animePopular && homeData.animePopular.length > 0">
+          <div class="sec-head"><i class="fas fa-trophy text-yellow-500 text-xl"></i><h3 class="text-xl font-black uppercase italic tracking-wider">Top Anime Populer</h3></div>
+          <div class="flex overflow-x-auto gap-4 pb-4 no-scrollbar">
+            <template x-for="(item,i) in homeData.animePopular" :key="'apop-'+i">
+              <div @click="go('stream',item.url)" class="flex-shrink-0 w-36 md:w-44 group cursor-pointer">
+                <div class="relative aspect-poster rounded-2xl overflow-hidden mb-3 border border-white/5 group-hover:border-indigo-500/50 transition shadow-lg">
+                  <img :src="item.thumbnail" loading="lazy" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                  <div class="absolute top-2 left-2 bg-indigo-600 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-lg" x-text="item.rank"></div>
+                  <div class="absolute bottom-2 right-2 bg-black/70 backdrop-blur-md text-yellow-500 text-[9px] font-black px-2 py-0.5 rounded-md border border-white/10 flex items-center gap-1">
+                    <i class="fas fa-star text-[8px]"></i><span x-text="item.rating.replace(/[^0-9.]/g, '')"></span>
+                  </div>
+                </div>
+                <h4 class="text-[10px] font-bold line-clamp-2 text-center group-hover:text-indigo-400 transition" x-text="item.title"></h4>
+              </div>
+            </template>
+          </div>
+        </section>
+
+        <!-- Anime Terbaru (Samehadaku) -->
+        <section x-show="homeData.animeLatest && homeData.animeLatest.length > 0">
+          <div class="sec-head"><div class="h-6 w-1.5 bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div><h3 class="text-xl font-black uppercase italic tracking-wider">Anime Terbaru <span class="text-[10px] ml-2 text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-md not-italic font-black">Samehadaku</span></h3></div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+            <template x-for="(item,i) in homeData.animeLatest" :key="'ani-'+i">
+              <div @click="go('stream',item.url)" class="card-poster group !border-indigo-500/10 hover:!border-indigo-500/50">
+                <div class="relative aspect-poster overflow-hidden bg-[#1f232d]">
+                  <img :src="item.thumbnail" loading="lazy" class="w-full h-full object-cover">
+                  <div class="ep-badge bg-indigo-600" x-text="item.episode"></div>
+                  <div class="play-overlay"><div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"><i class="fas fa-play text-white text-xl ml-1"></i></div></div>
+                </div>
+                <div class="p-3">
+                  <h4 class="text-[11px] font-bold line-clamp-2 group-hover:text-indigo-400 transition" x-text="cleanTitle(item.title)"></h4>
+                </div>
+              </div>
+            </template>
+          </div>
+        </section>
+
         <!-- Latest + Sidebar -->
         <div class="flex flex-col lg:flex-row gap-10">
           <div class="lg:w-3/4">
@@ -354,6 +389,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
     <!-- ===== DETAIL ===== -->
     <template x-if="page==='detail'">
       <div class="max-w-6xl mx-auto">
+        <div>
         <div class="flex flex-col md:flex-row gap-8 lg:gap-14">
           <!-- Poster & Meta -->
           <div class="w-full md:w-1/3 lg:w-1/4">
@@ -409,12 +445,14 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             </div>
           </div>
         </div>
+        </div>
       </div>
     </template>
 
     <!-- ===== STREAM ===== -->
     <template x-if="page==='stream'">
       <div class="max-w-5xl mx-auto">
+        <div>
         <div class="mb-6">
           <h1 class="text-xl md:text-2xl font-black text-white" x-text="streamData.title"></h1>
           <button @click="go('detail',streamData.series_url)" class="text-blue-500 text-xs font-bold hover:underline mt-1 flex items-center gap-1">
@@ -468,6 +506,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             </template>
           </div>
         </div>
+        </div>
       </div>
     </template>
 
@@ -515,13 +554,16 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
           <template x-for="(item,i) in watchHistory" :key="item.seriesTitle+i">
             <div class="group flex items-center gap-4 bg-[#161922] hover:bg-[#1c2030] border border-gray-800/60 hover:border-blue-600/40 rounded-2xl px-5 py-4 transition cursor-pointer" @click="go('stream',item.url)">
               <div class="w-8 h-8 rounded-xl bg-[#0f1117] border border-gray-800 flex items-center justify-center flex-shrink-0">
-                <span class="text-[10px] font-black text-gray-600" x-text="i+1"></span>
+                <span class="text-[10px] font-black text-blue-500" x-text="i+1"></span>
               </div>
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-black group-hover:text-blue-400 transition leading-tight" x-text="item.seriesTitle"></h4>
                 <div class="flex items-center gap-2 mt-1.5">
                   <template x-if="item.epNum">
-                    <span class="bg-blue-600 text-white px-2 py-0.5 rounded-md text-[9px] font-black uppercase" x-text="item.epNum"></span>
+                    <span :class="item.isAnime ? 'bg-indigo-600' : 'bg-blue-600'" class="text-white px-2 py-0.5 rounded-md text-[9px] font-black uppercase" x-text="item.epNum"></span>
+                  </template>
+                  <template x-if="item.isAnime">
+                    <span class="text-[8px] font-black text-indigo-400 uppercase tracking-tighter">Anime</span>
                   </template>
                 </div>
               </div>
@@ -533,10 +575,10 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                 <p class="text-[9px] font-bold text-gray-500" x-text="formatDate(item.watchedAt,'short')"></p>
               </div>
               <div class="flex-shrink-0 flex items-center gap-2">
-                <button @click.stop="confirmRemoveHistory(i)" class="w-8 h-8 rounded-xl bg-[#0f1117] hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition text-gray-500 border border-gray-800">
+                <button @click.stop="confirmRemoveHistory(i)" class="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition border border-red-500/20">
                   <i class="fas fa-times text-[10px]"></i>
                 </button>
-                <div class="w-8 h-8 rounded-xl bg-blue-600/0 group-hover:bg-blue-600 flex items-center justify-center transition text-gray-700 group-hover:text-white">
+                <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center transition text-white shadow-lg shadow-blue-600/20">
                   <i class="fas fa-play text-[10px] ml-0.5"></i>
                 </div>
               </div>
@@ -595,10 +637,10 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
               </div>
               <p class="text-[9px] text-red-800 font-black hidden sm:block" x-text="trashExpiry(item.deletedAt)"></p>
               <div class="flex items-center gap-2 flex-shrink-0">
-                <button @click="restoreFromTrash(i)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600/10 hover:bg-blue-600 border border-blue-700/30 text-blue-400 hover:text-white text-[10px] font-black uppercase transition">
+                <button @click="restoreFromTrash(i)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 text-white border border-blue-700/30 text-[10px] font-black uppercase transition shadow-lg shadow-blue-600/20">
                   <i class="fas fa-undo text-[9px]"></i> Restore
                 </button>
-                <button @click="confirmDeletePermanent(i)" class="w-8 h-8 rounded-xl bg-[#0f1117] hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition text-gray-600 border border-gray-800">
+                <button @click="confirmDeletePermanent(i)" class="w-8 h-8 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition border border-red-500/20">
                   <i class="fas fa-times text-[10px]"></i>
                 </button>
               </div>
@@ -699,7 +741,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                   <h4 class="text-sm font-bold text-gray-200">Install PurTV di Android / iOS</h4>
                   <p class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider font-bold">Dapatkan pengalaman streaming yang lebih stabil & cepat.</p>
                 </div>
-                <a href="https://pwa-wrapper-self.vercel.app/view?name=PurTV Donghua&url=https://puruboy-api.vercel.app/page/purtv-donghua&icon=https://files.catbox.moe/iqu11c.jpeg" target="_blank" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition text-center shadow-lg shadow-blue-600/20">
+                <a :href="'https://pwa-wrapper-self.vercel.app/view?name=PurTV Donghua&url=' + puruboyApi + '/page/purtv-donghua&icon=https://files.catbox.moe/iqu11c.jpeg'" target="_blank" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition text-center shadow-lg shadow-blue-600/20">
                   <i class="fas fa-download mr-2"></i> Install APK
                 </a>
               </div>
@@ -724,12 +766,12 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
               <i class="fas fa-tv text-white"></i>
             </div>
-            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v2.2</span></h3>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v2.5</span></h3>
             <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Streaming Donghua Subtitle Indonesia</p>
             <div class="flex justify-center gap-4 mt-6">
               <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
               <a href="https://wa.me/6283894391287" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-whatsapp"></i></a>
-              <a href="https://PuruBoy-api.vercel.app" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fas fa-globe"></i></a>
+              <a :href="puruboyApi" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fas fa-globe"></i></a>
             </div>
           </div>
         </div>
@@ -786,7 +828,9 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                          <span x-text="item.releaseTime"></span>
                        </p>
                        <template x-if="item.nextEpisode && item.nextEpisode !== '??'">
-                         <span class="text-[8px] bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded-lg font-black" x-text="'EP '+item.nextEpisode"></span>
+                         <span class="text-[8px] px-1.5 py-0.5 rounded-lg font-black" 
+                           :class="item.type === 'Anime' ? 'bg-indigo-600/20 text-indigo-400' : 'bg-blue-600/20 text-blue-400'"
+                           x-text="item.type === 'Anime' ? '★ ' + item.nextEpisode : 'EP ' + item.nextEpisode"></span>
                        </template>
                     </div>
                   </div>
@@ -874,19 +918,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
     <div x-show="!aiLoading&&!aiError&&aiResult" x-cloak>
       <div class="border-t border-gray-800 mb-6"></div>
       <div class="md-content" x-html="typeof marked!=='undefined'?aiResult:''"></div>
-      <div x-show="aiChoices.length>0" class="mt-6 pt-5 border-t border-blue-900/40">
-        <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-          <i class="fas fa-hand-pointer"></i>Pertanyaan lanjutan
-        </p>
-        <div class="flex flex-col gap-2">
-          <template x-for="(choice,i) in aiChoices" :key="i">
-            <button @click="askFollowUp(choice)" class="w-full text-left flex items-start gap-3 bg-[#1a1f2e] hover:bg-blue-600/20 border border-gray-800 hover:border-blue-500/50 px-4 py-3 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition group">
-              <span class="flex-shrink-0 w-6 h-6 rounded-lg bg-blue-600/20 group-hover:bg-blue-600 flex items-center justify-center text-blue-400 group-hover:text-white font-black text-[10px] transition" x-text="i+1"></span>
-              <span x-text="choice" class="leading-snug pt-0.5"></span>
-            </button>
-          </template>
-        </div>
-      </div>
       <div class="mt-6 pt-4 border-t border-gray-800 flex items-center gap-2">
         <i class="fas fa-circle-info text-gray-600 text-xs"></i>
         <p class="text-[10px] text-gray-600 font-bold">Jawaban dihasilkan oleh AI. Bisa saja tidak 100% akurat.</p>
@@ -919,16 +950,19 @@ function puruTVApp() {
   return {
     title: 'PurTV',
     baseUrl: 'https://anichin.cafe',
+    animeBaseUrl: 'https://v2.samehadaku.how/',
     page: 'home', loading: true, sliderIndex: 0,
-    epLimit: 24,
+    apiUrl: 'https://vercel-api-beta-red.vercel.app/api/scraper-web',
+    puruboyApi: 'https://puruboy-api.vercel.app',
+    epLimit: 24, activeUrl: '',
     showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
     activeServer: '', currentPage: 1, hasNextPage: false, theme: 'blue',
     customColor: '#3b82f6',
-    homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [] }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
+    homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [], animeLatest: [], animePopular: [] }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
     streamData: { navigation:{} }, scheduleData: [],
     allGenres: [], listData: [],
     preferredServerHost: '', searchTitle: '',
-    aiPanel: false, aiLoading: false, aiResult: '', aiError: '', aiTitle: '', aiChoices: [],
+    aiPanel: false, aiLoading: false, aiResult: '', aiError: '', aiTitle: '',
     isStandalone: false,
 
     showSchedulePanel: false,
@@ -962,7 +996,10 @@ function puruTVApp() {
       return days[d] || d;
     },
 
-    get currentType() { return 'Donghua'; },
+    get currentType() { 
+      const url = this.activeUrl.toLowerCase();
+      return (url.includes('samehadaku') || url.includes('/anime/') || url.includes('/episode/')) ? 'Anime' : 'Donghua'; 
+    },
 
     init() {
       this.watchHistory  = JSON.parse(localStorage.getItem('puruTV_history') || '[]');
@@ -974,14 +1011,10 @@ function puruTVApp() {
       this.applyTheme();
       this._purgeExpiredTrash();
       
-      // Load Initial Home Data
-      this.fetchHome();
+      this.go('home');
       this.fetchGenres();
       this.fetchSchedule();
 
-      window.addEventListener('hashchange', () => this.routeHandler());
-      this.routeHandler();
-      
       // Remove Splash Screen after everything is ready
       setTimeout(() => {
         const splash = document.getElementById('pur-splash');
@@ -1039,12 +1072,11 @@ function puruTVApp() {
     },
 
     cleanTitle(t) { 
-      if (!t) return '';
-      // Menghapus tab \t dan mengambil bagian pertama saja
-      const parts = t.split(/\t+/);
-      let title = parts[0].trim();
-      // Menghapus "Episode XX Subtitle Indonesia" dari judul jika ada di pencarian/popular
-      return title.replace(/\sEpisode\s\d+.*$/i, '').trim();
+      return t ? t.split(/\t+/)[0].trim()
+        .replace(/^Nonton\s+/i, '')
+        .replace(/\s+Subtitle\s+Indonesia.*$/i, '')
+        .replace(/\s+(?:Episode|Ep|Eps|E)\.?\s?\d+.*$/i, '')
+        .replace(/\s+-\s+\d+.*$/i, '').trim() : '';
     },
 
     formatDate(iso, type='full') {
@@ -1060,80 +1092,85 @@ function puruTVApp() {
       return d.toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'});
     },
 
-    async routeHandler() {
-      const [view,query] = (window.location.hash||'#home').split('?');
-      const params = new URLSearchParams(query||'');
-      const url=params.get('url'), slug=params.get('slug'), q=params.get('q'), page=+params.get('page')||1;
-      Object.assign(this,{homeData:{},animeDetail:{metadata:{},genres:[],episodeList:[]},streamData:{},listData:[],scheduleData:[],loading:true,aiPanel:false,currentPage:page});
-      try {
-        this.page = view.slice(1)||'home';
-        if      (this.page==='home')     await this.fetchHome();
-        else if (this.page==='detail')   await this.fetchDetail(url);
-        else if (this.page==='stream')   await this.fetchStream(url);
-        else if (this.page==='schedule') await this.fetchSchedule();
-        else if (this.page==='genres')   await this.fetchGenres();
-        else if (this.page==='genre')    { this.page='results'; await this.fetchByGenre(slug,page); }
-        else if (this.page==='search')   { this.page='results'; await this.fetchSearch(q,page); }
-        else if (this.page==='trash')    this._purgeExpiredTrash();
-      } catch(e){ console.error(e); }
-      this.loading=false; window.scrollTo(0,0);
-    },
-
-    go(view, paramValue) {
+    async go(view, paramValue) {
       if (view === 'schedule') {
         this.showSchedulePanel = true;
         if (!this.scheduleData.length) this.fetchSchedule();
         return;
       }
-      if (view==='detail'||view==='stream') {
-        let p = paramValue||'';
-        if (p.includes('url=')) p = p.split('url=')[1];
-        else if (p.includes('://')) { try { p = new URL(p).pathname; } catch(e){} }
-        window.location.hash = `#${view}?url=${encodeURIComponent(p)}`;
-      } else if (view==='genre') {
-        window.location.hash = `#genre?slug=${paramValue}&page=1`;
-      } else {
-        window.location.hash = `#${view}`;
+
+      if (view === 'stream' && paramValue && paramValue.includes('/anime/') && !paramValue.includes('episode')) {
+        view = 'detail';
       }
+
+      this.loading = true;
+      this.page = view;
+      this.activeUrl = paramValue || '';
+      this.currentPage = 1;
+      this.aiPanel = false;
+      this.streamData = { navigation:{} };
+      this.animeDetail = { metadata:{}, genres:[], episodeList:[] };
+
+      try {
+        if      (view === 'home')     await this.fetchHome();
+        else if (view === 'detail')   {
+          await this.fetchDetail(paramValue);
+        }
+        else if (view === 'stream')   {
+          await this.fetchStream(paramValue);
+        }
+        else if (view === 'genres')   await this.fetchGenres();
+        else if (view === 'history')  this.page = 'history';
+        else if (view === 'settings') this.page = 'settings';
+        else if (view === 'genre')    { this.page = 'results'; await this.fetchByGenre(paramValue, 1); }
+        else if (view === 'search')   { this.page = 'results'; await this.fetchSearch(paramValue, 1); }
+        else if (view === 'trash')    { this.page = 'trash'; this._purgeExpiredTrash(); }
+      } catch(e) { console.error(e); }
+
+      this.loading = false;
+      window.scrollTo(0, 0);
     },
 
-    changePage(n) {
-      const params=new URLSearchParams(window.location.hash.split('?')[1]);
-      params.set('page',n);
-      window.location.hash = `${window.location.hash.split('?')[0]}?${params}`;
+    async changePage(n) {
+      this.currentPage = n;
+      this.loading = true;
+      if (this.searchTitle.includes('Genre:')) {
+        const slug = this.searchTitle.replace('Genre: ', '').replace(/\s+/g, '-').toLowerCase();
+        await this.fetchByGenre(slug, n);
+      } else {
+        const q = this.searchTitle.replace('Hasil Cari: ', '');
+        await this.fetchSearch(q, n);
+      }
+      this.loading = false;
+      window.scrollTo(0, 0);
     },
 
     async fetchSuggestions() {
       if (this.searchQuery.length<2) { this.suggestions=[]; this.showSuggestions=false; return; }
       try {
-        const d=await fetch(`https://puruboy-api.vercel.app/api/search/suggest?q=${encodeURIComponent(this.searchQuery)}`).then(r=>r.json());
+        const d=await fetch(`${this.puruboyApi}/api/search/suggest?q=${encodeURIComponent(this.searchQuery)}`).then(r=>r.json());
         if (d.success) { this.suggestions=d.result; this.showSuggestions=true; }
       } catch(e){}
     },
 
     startSearch() {
-      if (this.searchQuery.length<2) return;
-      window.location.hash=`#search?q=${this.searchQuery}&page=1`;
-      this.searchQuery=''; this.suggestions=[]; this.showSuggestions=false;
+      if (this.searchQuery.length < 2) return;
+      const q = this.searchQuery;
+      this.searchQuery = ''; this.suggestions = []; this.showSuggestions = false;
+      this.go('search', q);
     },
 
     async openAIPanel(title) {
       this.aiTitle=this.cleanTitle(title); this.aiPanel=true; this.aiLoading=true;
-      this.aiResult=''; this.aiError=''; this.aiChoices.splice(0);
+      this.aiResult=''; this.aiError='';
       const t=this.currentType;
       await this._sendAIMessage(`Halo! Jelaskan secara mendalam tentang ${t} berjudul "${this.aiTitle}". Berikan sinopsis, daftar karakter utama, tema cerita, dan alasan mengapa ${t} ini menarik untuk ditonton. Gunakan Bahasa Indonesia yang santai tapi informatif.`);
     },
 
-    async askFollowUp(choice) {
-      if (this.aiLoading) return;
-      this.aiLoading=true; this.aiChoices.splice(0);
-      const t=this.currentType;
-      await this._sendAIMessage(`Berdasarkan ${t} "${this.aiTitle}", jawab pertanyaan ini dalam Bahasa Indonesia: ${choice}`);
-    },
 
     async _sendAIMessage(prompt) {
       try {
-        const response = await fetch('https://puruboy-api.vercel.app/api/ai/quillbot', {
+        const response = await fetch(`${this.puruboyApi}/api/ai/quillbot`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ "message": prompt })
@@ -1195,16 +1232,28 @@ function puruTVApp() {
 
     saveHistory() {
       const s=this.streamData;
-      if (!s?.series) return;
-      const seriesTitle=this.cleanTitle(s.series), episode=s.title||'', watchedAt=new Date().toISOString();
-      const urlParam=new URLSearchParams((window.location.hash.split('?')[1]||'')).get('url')||'';
+      if (!s || !s.title) return;
+      
+      // Mengambil judul seri dari data breadcrumb, jika gagal gunakan judul episode yang dibersihkan
+      let seriesTitle = this.cleanTitle(s.series);
+      // Validasi agar kata umum tidak masuk sebagai judul seri
+      if (!seriesTitle || ['home', 'anime', 'donghua'].includes(seriesTitle.toLowerCase()) || seriesTitle.length < 3) {
+        seriesTitle = this.cleanTitle(s.title);
+      }
+      
+      const episode=s.title||'', watchedAt=new Date().toISOString();
+      if (!seriesTitle) return;
+      const urlParam=this.activeUrl;
       let epNum='';
-      const m=urlParam.match(/episode-(\d+)/);
-      if (m) epNum='Ep. '+m[1];
-      else if (episode.toLowerCase().includes('episode')) epNum='Ep. '+(episode.split(/episode/i)[1]||'').trim().split(' ')[0];
+      // Regex lebih kuat untuk menangkap nomor episode di Donghua maupun Anime
+      const epMatch = urlParam.match(/(?:episode|eps)-(\d+)/i) || episode.match(/(?:Episode|Ep)\s*(\d+)/i);
+      if (epMatch) epNum='Ep. '+epMatch[1];
+      
+      const isAnime = urlParam.includes('samehadaku') || urlParam.includes('/anime/') || urlParam.includes('/episode/');
       const idx=this.watchHistory.findIndex(h=>h.seriesTitle===seriesTitle);
       if (idx!==-1) this.watchHistory.splice(idx,1);
-      this.watchHistory.unshift({seriesTitle,episode,epNum,watchedAt,url:urlParam});
+      
+      this.watchHistory.unshift({seriesTitle,episode,epNum,watchedAt,url:urlParam,isAnime});
       if (this.watchHistory.length>20) this.watchHistory.length=20;
       this._saveAll();
     },
@@ -1291,33 +1340,48 @@ function puruTVApp() {
       const cache = JSON.parse(localStorage.getItem('puruTV_home_cache') || 'null');
       if (cache && (Date.now() - cache.timestamp < 1800000)) this.homeData = cache.data;
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: this.baseUrl + '/',
-            output: JSON.stringify({
-              featuredSlider: "$('#slidertwo .swiper-slide').map((i, el) => ({ title: $(el).find('h2 a').text().trim(), thumbnail: $(el).find('.backdrop').attr('style').match(/url\\(['\"]?(.*?)['\"]?\\)/)[1], url: $(el).find('h2 a').attr('href'), description: $(el).find('.info p').first().text().trim() })).get()",
-              popularToday: "$('.hothome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
-              latestReleases: "$('.latesthome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
-              ongoingSidebar: "$('.ongoingseries ul li').map((i, el) => ({ title: $(el).find('.l').text().trim(), url: $(el).find('a').attr('href'), episode: $(el).find('.r').text().trim() })).get()"
+        const [donghua, anime] = await Promise.all([
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: this.baseUrl + '/',
+              output: JSON.stringify({
+                featuredSlider: "$('#slidertwo .swiper-slide').map((i, el) => ({ title: $(el).find('h2 a').text().trim(), thumbnail: $(el).find('.backdrop').attr('style').match(/url\\(['\"]?(.*?)['\"]?\\)/)[1], url: $(el).find('h2 a').attr('href'), description: $(el).find('.info p').first().text().trim() })).get()",
+                popularToday: "$('.hothome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
+                latestReleases: "$('.latesthome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
+                ongoingSidebar: "$('.ongoingseries ul li').map((i, el) => ({ title: $(el).find('.l').text().trim(), url: $(el).find('a').attr('href'), episode: $(el).find('.r').text().trim() })).get()"
+              })
             })
-          })
-        });
-        const d = await res.json();
-        if (d) {
-          d.featuredSlider = (d.featuredSlider || []).map((s, i) => ({
+          }).then(r => r.json()),
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: this.animeBaseUrl,
+              output: JSON.stringify({
+                latestAnime: "$('.post-show ul li').map((i, el) => ({ title: $(el).find('.entry-title a').text().trim(), thumbnail: $(el).find('.thumb img').attr('src'), url: $(el).find('.thumb a').attr('href'), episode: 'Ep ' + $(el).find('.dtla span author').first().text().trim() })).get()",
+                popularAnime: "$('.topten-animesu ul li').map((i, el) => ({ title: $(el).find('.judul').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), rating: $(el).find('.rating').text().trim(), rank: $(el).find('.is-topten').text().trim() })).get()"
+              })
+            })
+          }).then(r => r.json())
+        ]);
+
+        if (donghua) {
+          donghua.featuredSlider = (donghua.featuredSlider || []).map((s, i) => ({
             ...s,
             color: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#f43f5e'][i % 5]
           }));
-          this.homeData = d;
-          localStorage.setItem('puruTV_home_cache', JSON.stringify({timestamp: Date.now(), data: d}));
+          donghua.animeLatest = anime?.latestAnime || [];
+          donghua.animePopular = anime?.popularAnime || [];
+          this.homeData = donghua;
+          localStorage.setItem('puruTV_home_cache', JSON.stringify({timestamp: Date.now(), data: donghua}));
         }
       } catch(e) { console.error('Home Fetch Error:', e); }
     },
     async fetchGenres() {
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+        const res = await fetch(this.apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1333,48 +1397,81 @@ function puruTVApp() {
     },
     async fetchByGenre(slug, page) {
       this.searchTitle = `Genre: ${slug.replace(/-/g, ' ')}`;
-      const url = page > 1 ? `${this.baseUrl}/genres/${slug}/page/${page}/` : `${this.baseUrl}/genres/${slug}/`;
+      const bD = this.baseUrl.replace(/\/+$/, '');
+      const bA = this.animeBaseUrl.replace(/\/+$/, '');
+      
+      const urlD = page > 1 ? `${bD}/genres/${slug}/page/${page}/` : `${bD}/genres/${slug}/`;
+      const urlA = page > 1 ? `${bA}/genre/${slug}/page/${page}/` : `${bA}/genre/${slug}/`;
+      
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: url,
-            output: JSON.stringify({
-              data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.epx').text().trim() })).get()",
-              hasNextPage: "$('.pagination a.next').length > 0"
+        const [resD, resA] = await Promise.all([
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: urlD,
+              output: JSON.stringify({
+                data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.epx').text().trim() })).get()",
+                hasNextPage: "$('.pagination a.next').length > 0"
+              })
             })
-          })
-        });
-        const d = await res.json();
-        if (d) {
-          this.listData = d.data || [];
-          this.hasNextPage = d.hasNextPage || false;
-        }
+          }).then(r => r.json()).catch(() => ({ data: [], hasNextPage: false })),
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: urlA,
+              output: JSON.stringify({
+                data: "$('article.animpost').map((i, el) => ({ title: $(el).find('.data .title h2').text().trim(), thumbnail: $(el).find('.content-thumb img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.content-thumb .type').text().trim(), status: $(el).find('.data .type').text().trim(), episode: $(el).find('.score').text().trim() })).get()",
+                hasNextPage: "$('.pagination .arrow_pag').length > 0"
+              })
+            })
+          }).then(r => r.json()).catch(() => ({ data: [], hasNextPage: false }))
+        ]);
+
+        this.listData = [...(resD.data || []), ...(resA.data || [])];
+        this.hasNextPage = (resD.hasNextPage || resA.hasNextPage) || false;
       } catch (e) {
         console.error('Genre Fetch Error:', e);
       }
     },
     async fetchSearch(q, page) {
       this.searchTitle = `Hasil Cari: ${q}`;
-      const url = page > 1 ? `${this.baseUrl}/page/${page}/?s=${encodeURIComponent(q)}` : `${this.baseUrl}/?s=${encodeURIComponent(q)}`;
+      const bD = this.baseUrl.replace(/\/+$/, '');
+      const bA = this.animeBaseUrl.replace(/\/+$/, '');
+      const urlD = page > 1 ? `${bD}/page/${page}/?s=${encodeURIComponent(q)}` : `${bD}/?s=${encodeURIComponent(q)}`;
+      const urlA = page > 1 ? `${bA}/page/${page}/?s=${encodeURIComponent(q)}` : `${bA}/?s=${encodeURIComponent(q)}`;
+      
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: url,
-            output: JSON.stringify({
-              data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.bt .epx').text().trim() })).get()",
-              hasNextPage: "$('.pagination a.next').length > 0"
+        const [resD, resA] = await Promise.all([
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: urlD,
+              output: JSON.stringify({
+                data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.bt .epx').text().trim() })).get()",
+                hasNextPage: "$('.pagination a.next').length > 0"
+              })
             })
-          })
-        });
-        const d = await res.json();
-        if (d) {
-          this.listData = d.data || [];
-          this.hasNextPage = d.hasNextPage || false;
-        }
+          }).then(r => r.json()).catch(() => ({ data: [], hasNextPage: false })),
+
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: urlA,
+              output: JSON.stringify({
+                data: "$('article.animpost').map((i, el) => ({ title: $(el).find('.data .title h2').text().trim(), thumbnail: $(el).find('.content-thumb img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.content-thumb .type').text().trim(), status: $(el).find('.data .type').text().trim(), episode: $(el).find('.score').text().trim() })).get()",
+                hasNextPage: "$('.pagination .next').length > 0"
+              })
+            })
+          }).then(r => r.json()).catch(() => ({ data: [], hasNextPage: false }))
+
+        ]);
+
+        this.listData = [...(resD.data || []), ...(resA.data || [])];
+        this.hasNextPage = (resD.hasNextPage || resA.hasNextPage) || false;
       } catch (e) {
         console.error('Search Fetch Error:', e);
       }
@@ -1382,26 +1479,43 @@ function puruTVApp() {
     async fetchDetail(url) {
       this.epLimit = 24;
       let rawUrl = decodeURIComponent(url);
-      if (rawUrl.startsWith('/')) rawUrl = this.baseUrl + rawUrl;
+      
+      if (!rawUrl.startsWith('http')) {
+        const isAnimePath = rawUrl.includes('/anime/') || rawUrl.includes('samehadaku');
+        const base = isAnimePath ? this.animeBaseUrl : this.baseUrl;
+        rawUrl = base.replace(/\/$/, '') + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
+      }
+      
+      const isAnime = rawUrl.includes('samehadaku');
+      const outputConfig = isAnime ? {
+        title: "$('.anim-detail').text().replace('Detail Anime ', '').trim()",
+        thumbnail: "$('.thumb img').attr('src')",
+        rating: "$('.archiveanime-rating span[itemprop=\"ratingValue\"]').text().trim()",
+        status: "$('.spe span:contains(\"Status\")').text().replace('Status', '').trim()",
+        studio: "$('.spe span:contains(\"Studio\")').text().replace('Studio', '').trim()",
+        updated_on: "$('.spe span:contains(\"Released\")').text().replace('Released:', '').trim()",
+        type: "$('.spe span:contains(\"Type\")').text().replace('Type', '').trim()",
+        genres: "$('.genre-info a').map((i, el) => $(el).text().trim()).get()",
+        synopsis: "$('.desc .entry-content p').first().text().trim()",
+        episodeList: "$('.lstepsiode.listeps ul li').map((i, el) => ({ title: $(el).find('.lchx a').text().trim(), episode: $(el).find('.eps a').text().trim(), url: $(el).find('a').attr('href') })).get()"
+      } : {
+        title: "$('.entry-title').text().trim()",
+        thumbnail: "$('.thumb img').attr('src')",
+        rating: "$('.rating strong').text().replace('Rating', '').trim()",
+        status: "$('.spe span:contains(\"Status\")').text().split(':')[1]?.trim()",
+        studio: "$('.spe span:contains(\"Studio\")').text().split(':')[1]?.trim()",
+        updated_on: "$('.spe span:contains(\"Updated on\")').text().split(':')[1]?.trim()",
+        type: "$('.spe span:contains(\"Type\")').text().split(':')[1]?.trim()",
+        genres: "$('.genxed a').map((i, el) => $(el).text().trim()).get()",
+        synopsis: "$('.entry-content p').first().text().trim()",
+        episodeList: "$('.eplister ul li a').map((i, el) => ({ title: $(el).find('.epl-title').text().trim(), episode: $(el).find('.epl-num').text().trim(), url: $(el).attr('href') })).get()"
+      };
+
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+        const res = await fetch(this.apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: rawUrl,
-            output: JSON.stringify({
-              title: "$('.entry-title').text().trim()",
-              thumbnail: "$('.thumb img').attr('src')",
-              rating: "$('.rating strong').text().replace('Rating', '').trim()",
-              status: "$('.spe span:contains(\"Status\")').text().split(':')[1]?.trim()",
-              studio: "$('.spe span:contains(\"Studio\")').text().split(':')[1]?.trim()",
-              updated_on: "$('.spe span:contains(\"Updated on\")').text().split(':')[1]?.trim()",
-              type: "$('.spe span:contains(\"Type\")').text().split(':')[1]?.trim()",
-              genres: "$('.genxed a').map((i, el) => $(el).text().trim()).get()",
-              synopsis: "$('.entry-content p').first().text().trim()",
-              episodeList: "$('.eplister ul li a').map((i, el) => ({ title: $(el).find('.epl-title').text().trim(), episode: $(el).find('.epl-num').text().trim(), url: $(el).attr('href') })).get()"
-            })
-          })
+          body: JSON.stringify({ url: rawUrl, output: JSON.stringify(outputConfig) })
         });
         const d = await res.json();
         if (d) {
@@ -1413,31 +1527,46 @@ function puruTVApp() {
               updated_on: d.updated_on,
               type: d.type
             },
-            episodeList: (d.episodeList || []).reverse()
+            episodeList: isAnime ? (d.episodeList || []) : (d.episodeList || []).reverse()
           };
         }
       } catch(e) { console.error('Detail Fetch Error:', e); }
     },
     async fetchStream(url) {
       let rawUrl = decodeURIComponent(url);
-      if (rawUrl.startsWith('/')) rawUrl = this.baseUrl + rawUrl;
+      // Deteksi anime yang lebih akurat untuk mode riwayat
+      let isAnime = rawUrl.includes('samehadaku') || rawUrl.includes('/anime/') || rawUrl.includes('/episode/');
+      
+      if (!rawUrl.startsWith('http')) {
+        const base = isAnime ? this.animeBaseUrl : this.baseUrl;
+        rawUrl = base.replace(/\/$/, '') + (rawUrl.startsWith('/') ? '' : '/') + rawUrl;
+      }
+      
+      const outputConfig = isAnime ? {
+        title: "$('.entry-title').text().trim()",
+        series: "$('.breadcrumb span:nth-child(3) a span').text().trim() || $('#breadcrumbs ol li:nth-child(3) a span').text().trim() || $('.breadcrumb span:nth-child(2) a span').text().trim()",
+        series_url: "$('.breadcrumb span:nth-child(2) a').attr('href') || $('#breadcrumbs ol li:nth-child(3) a').attr('href')",
+        streamingLinks: "$('#server ul li .east_player_option').map((i, el) => ({ server: $(el).find('span').text().trim(), post: $(el).attr('data-post'), nume: $(el).attr('data-nume'), type: $(el).attr('data-type') })).get()",
+        downloadLinks: "$('.download-eps').map((i, el) => { const cat = $(el).find('p b').text().trim(); return $(el).find('ul li').map((j, li) => ({ quality: cat + ' ' + $(li).find('strong').text().trim(), links: $(li).find('span a').map((k, a) => ({ host: $(a).text().trim(), link: $(a).attr('href') })).get() })).get(); }).get().flat()",
+        prevEpisode: "$('.naveps .nvs a:not(.nonex)').first().attr('href')",
+        allEpisodes: "$('.naveps .nvsc a').attr('href')",
+        nextEpisode: "$('.naveps .rght a:not(.nonex)').first().attr('href')"
+      } : {
+        title: "$('.entry-title').text().trim()",
+        series: "$('.ts-breadcrumb li:nth-child(2) a span').text().trim()",
+        series_url: "$('.ts-breadcrumb li:nth-child(2) a').attr('href')",
+        streamingLinks: "$('.mirror option').map((i, el) => ({ server: $(el).text().trim(), link: $(el).val() })).get().filter(x => x.link)",
+        downloadLinks: "$('.soraddlx.soradlg .soraurlx').map((i, el) => ({ quality: $(el).find('strong').text().trim(), links: $(el).find('a').map((j, a) => ({ host: $(a).text().trim(), link: $(a).attr('href') })).get() })).get()",
+        prevEpisode: "$('.naveps .nvs a[rel=\"prev\"]').attr('href')",
+        allEpisodes: "$('.naveps .nvsc a').attr('href')",
+        nextEpisode: "$('.naveps .nvs a[rel=\"next\"]').attr('href')"
+      };
+
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+        const res = await fetch(this.apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: rawUrl,
-            output: JSON.stringify({
-              title: "$('.entry-title').text().trim()",
-              series: "$('.ts-breadcrumb li:nth-child(2) a span').text().trim()",
-              series_url: "$('.ts-breadcrumb li:nth-child(2) a').attr('href')",
-              streamingLinks: "$('.mirror option').map((i, el) => ({ server: $(el).text().trim(), link: $(el).val() })).get().filter(x => x.link)",
-              downloadLinks: "$('.soraddlx.soradlg .soraurlx').map((i, el) => ({ quality: $(el).find('strong').text().trim(), links: $(el).find('a').map((j, a) => ({ host: $(a).text().trim(), link: $(a).attr('href') })).get() })).get()",
-              prevEpisode: "$('.naveps .nvs a[rel=\"prev\"]').attr('href')",
-              allEpisodes: "$('.naveps .nvsc a').attr('href')",
-              nextEpisode: "$('.naveps .nvs a[rel=\"next\"]').attr('href')"
-            })
-          })
+          body: JSON.stringify({ url: rawUrl, output: JSON.stringify(outputConfig) })
         });
         const d = await res.json();
         if (d) {
@@ -1448,7 +1577,10 @@ function puruTVApp() {
           const links = this.streamData.streamingLinks || [];
           const pref = links.findIndex(s => s.server === this.preferredServerHost);
           const start = pref !== -1 ? links[pref] : (links[0] || null);
-          if (start) this.changeServer(start.link, start.server, false);
+          if (start) {
+            const linkVal = isAnime ? start : start.link;
+            this.changeServer(linkVal, start.server, false);
+          }
           this.saveHistory();
         }
       } catch(e) { console.error('Stream Fetch Error:', e); }
@@ -1460,20 +1592,48 @@ function puruTVApp() {
         return;
       }
       try {
-        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: this.baseUrl + '/schedule/',
-            output: JSON.stringify({
-              schedule: "$('.bixbox.schedulepage').map((i, el) => ({ day: $(el).find('.releases h3 span').text().trim(), list: $(el).find('.listupd .bs').map((j, item) => ({ title: $(item).find('.tt').text().trim(), url: $(item).find('.bsx a').attr('href'), thumbnail: $(item).find('.limit img').attr('src'), releaseTime: $(item).find('.bt .epx').text().trim(), nextEpisode: $(item).find('.bt .sb.Sub').text().trim() })).get(), totalCount: $(el).find('.listupd .bs').length })).get()"
+        const [donghuaRes, animeRes] = await Promise.all([
+          fetch(this.apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: this.baseUrl + '/schedule/',
+              output: JSON.stringify({
+                schedule: "$('.bixbox.schedulepage').map((i, el) => ({ day: $(el).find('.releases h3 span').text().trim(), list: $(el).find('.listupd .bs').map((j, item) => ({ title: $(item).find('.tt').text().trim(), url: $(item).find('.bsx a').attr('href'), thumbnail: $(item).find('.limit img').attr('src'), releaseTime: $(item).find('.bt .epx').text().trim(), nextEpisode: $(item).find('.bt .sb.Sub').text().trim(), type: 'Donghua' })).get() })).get()"
+              })
             })
-          })
+          }).then(r => r.json()).catch(() => ({})),
+          fetch(`${this.puruboyApi}/api/anime/samehadaku/schedule`).then(r => r.json()).catch(() => ({}))
+        ]);
+
+        const daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        let merged = [];
+
+        daysOrder.forEach(day => {
+          let list = [];
+          if (donghuaRes?.schedule) {
+            const d = donghuaRes.schedule.find(x => x.day === day);
+            if (d) list.push(...d.list);
+          }
+          if (animeRes?.success && animeRes.result) {
+            const aList = animeRes.result[day.toLowerCase()] || [];
+            list.push(...aList.map(item => ({
+              title: item.title,
+              url: item.original_url,
+              thumbnail: item.thumbnail,
+              releaseTime: item.time,
+              nextEpisode: item.score,
+              type: 'Anime'
+            })));
+          }
+          if (list.length > 0) {
+            merged.push({ day, list, totalCount: list.length });
+          }
         });
-        const d = await res.json();
-        if (d && d.schedule) {
-          this.scheduleData = d.schedule;
-          localStorage.setItem('puruTV_schedule_cache', JSON.stringify({timestamp: Date.now(), data: d.schedule}));
+
+        if (merged.length) {
+          this.scheduleData = merged;
+          localStorage.setItem('puruTV_schedule_cache', JSON.stringify({timestamp: Date.now(), data: merged}));
         }
       } catch(e) { console.error('Schedule Fetch Error:', e); }
     },
@@ -1482,7 +1642,19 @@ function puruTVApp() {
       localStorage.setItem('puruTV_preferredServer', serverName);
       
       try {
-        if (link.length > 30 && !link.includes('://')) {
+        // Handle Samehadaku object server using PuruBoy API
+        if (typeof link === 'object' && link.post) {
+          const res = await fetch(`${this.puruboyApi}/api/anime/samehadaku/embed?post=${link.post}&nume=${link.nume}&type=${link.type}`);
+          const d = await res.json();
+          if (d.success && d.result && d.result.embed_url) {
+            this.activeServer = d.result.embed_url;
+          } else {
+            this.activeServer = '';
+          }
+          return;
+        }
+
+        if (typeof link === 'string' && link.length > 30 && !link.includes('://')) {
           const decoded = atob(link);
           const match = decoded.match(/src=["']([^"']+)["']/);
           if (match && match[1]) {
@@ -1498,7 +1670,7 @@ function puruTVApp() {
           this.activeServer = link;
         }
       } catch (e) {
-        this.activeServer = link;
+        this.activeServer = typeof link === 'string' ? link : '';
       }
     }
   }
