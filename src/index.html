@@ -70,7 +70,6 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 .ai-ring:hover::before{opacity:1;filter:blur(8px)}
 @keyframes hueRot{to{filter:hue-rotate(360deg)}}
 
-.glow-blue{box-shadow:0 0 15px -3px rgba(var(--blue-rgb), 0.4)}
 .btn-primary{background:linear-gradient(135deg, var(--blue), #2563eb);transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1)}
 .btn-primary:hover{box-shadow:0 10px 20px -5px rgba(var(--blue-rgb), 0.5);transform:translateY(-2px)}
 
@@ -725,8 +724,8 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
               <i class="fas fa-tv text-white"></i>
             </div>
-            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v2.1</span></h3>
-            <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Modern Donghua Streaming Client</p>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v2.2</span></h3>
+            <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Streaming Donghua Subtitle Indonesia</p>
             <div class="flex justify-center gap-4 mt-6">
               <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
               <a href="https://wa.me/6283894391287" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-whatsapp"></i></a>
@@ -919,6 +918,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 function puruTVApp() {
   return {
     title: 'PurTV',
+    baseUrl: 'https://anichin.cafe',
     page: 'home', loading: true, sliderIndex: 0,
     epLimit: 24,
     showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
@@ -1117,16 +1117,6 @@ function puruTVApp() {
       this.searchQuery=''; this.suggestions=[]; this.showSuggestions=false;
     },
 
-    parseAIJson(raw) {
-      let s=raw.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/,'').trim();
-      const a=s.indexOf('{'),b=s.lastIndexOf('}');
-      if (a===-1||b===-1) return null;
-      try {
-        const p=JSON.parse(s.substring(a,b+1));
-        return { respon:p.respon||p.response||p.jawaban||'', choice:Array.isArray(p.choice)?p.choice:[] };
-      } catch(e){ return null; }
-    },
-
     async openAIPanel(title) {
       this.aiTitle=this.cleanTitle(title); this.aiPanel=true; this.aiLoading=true;
       this.aiResult=''; this.aiError=''; this.aiChoices.splice(0);
@@ -1301,62 +1291,215 @@ function puruTVApp() {
       const cache = JSON.parse(localStorage.getItem('puruTV_home_cache') || 'null');
       if (cache && (Date.now() - cache.timestamp < 1800000)) this.homeData = cache.data;
       try {
-        const d = await fetch('https://puruboy-api.vercel.app/api/anime/anichin/home').then(r=>r.json()); 
-        if (d.success) {
-          d.result.featuredSlider = d.result.featuredSlider.map((s, i) => ({
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: this.baseUrl + '/',
+            output: JSON.stringify({
+              featuredSlider: "$('#slidertwo .swiper-slide').map((i, el) => ({ title: $(el).find('h2 a').text().trim(), thumbnail: $(el).find('.backdrop').attr('style').match(/url\\(['\"]?(.*?)['\"]?\\)/)[1], url: $(el).find('h2 a').attr('href'), description: $(el).find('.info p').first().text().trim() })).get()",
+              popularToday: "$('.hothome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
+              latestReleases: "$('.latesthome').next('.listupd').find('article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
+              ongoingSidebar: "$('.ongoingseries ul li').map((i, el) => ({ title: $(el).find('.l').text().trim(), url: $(el).find('a').attr('href'), episode: $(el).find('.r').text().trim() })).get()"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d) {
+          d.featuredSlider = (d.featuredSlider || []).map((s, i) => ({
             ...s,
             color: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#f43f5e'][i % 5]
           }));
-          this.homeData = d.result;
-          localStorage.setItem('puruTV_home_cache', JSON.stringify({timestamp: Date.now(), data: d.result}));
+          this.homeData = d;
+          localStorage.setItem('puruTV_home_cache', JSON.stringify({timestamp: Date.now(), data: d}));
         }
       } catch(e) { console.error('Home Fetch Error:', e); }
     },
-    async fetchGenres() { const d=await fetch('https://puruboy-api.vercel.app/api/anime/anichin/genres').then(r=>r.json()); this.allGenres=d.result; },
-    async fetchByGenre(slug,page) {
-      this.searchTitle=`Genre: ${slug.replace(/-/g,' ')}`;
-      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/genre?slug=${slug}&page=${page}`).then(r=>r.json());
-      this.listData=d.result.data; this.hasNextPage=d.result.hasNextPage;
+    async fetchGenres() {
+      try {
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: this.baseUrl + '/',
+            output: JSON.stringify({
+              genres: "$('.genre li a').map((i, el) => ({ name: $(el).text().trim(), slug: $(el).attr('href').split('/').filter(Boolean).pop() })).get()"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d && d.genres) this.allGenres = d.genres;
+      } catch(e) {}
     },
-    async fetchSearch(q,page) {
-      this.searchTitle=`Hasil Cari: ${q}`;
-      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/search?q=${q}&page=${page}`).then(r=>r.json());
-      this.listData=d.result.data;
-      this.hasNextPage=d.result.hasNextPage;
+    async fetchByGenre(slug, page) {
+      this.searchTitle = `Genre: ${slug.replace(/-/g, ' ')}`;
+      const url = page > 1 ? `${this.baseUrl}/genres/${slug}/page/${page}/` : `${this.baseUrl}/genres/${slug}/`;
+      try {
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: url,
+            output: JSON.stringify({
+              data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.epx').text().trim() })).get()",
+              hasNextPage: "$('.pagination a.next').length > 0"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d) {
+          this.listData = d.data || [];
+          this.hasNextPage = d.hasNextPage || false;
+        }
+      } catch (e) {
+        console.error('Genre Fetch Error:', e);
+      }
+    },
+    async fetchSearch(q, page) {
+      this.searchTitle = `Hasil Cari: ${q}`;
+      const url = page > 1 ? `${this.baseUrl}/page/${page}/?s=${encodeURIComponent(q)}` : `${this.baseUrl}/?s=${encodeURIComponent(q)}`;
+      try {
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: url,
+            output: JSON.stringify({
+              data: "$('.listupd article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), type: $(el).find('.typez').text().trim(), status: $(el).find('.status').text().trim(), episode: $(el).find('.bt .epx').text().trim() })).get()",
+              hasNextPage: "$('.pagination a.next').length > 0"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d) {
+          this.listData = d.data || [];
+          this.hasNextPage = d.hasNextPage || false;
+        }
+      } catch (e) {
+        console.error('Search Fetch Error:', e);
+      }
     },
     async fetchDetail(url) {
       this.epLimit = 24;
-      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/detail?url=${encodeURIComponent(decodeURIComponent(url))}`).then(r=>r.json());
-      this.animeDetail=d.result;
+      let rawUrl = decodeURIComponent(url);
+      if (rawUrl.startsWith('/')) rawUrl = this.baseUrl + rawUrl;
+      try {
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: rawUrl,
+            output: JSON.stringify({
+              title: "$('.entry-title').text().trim()",
+              thumbnail: "$('.thumb img').attr('src')",
+              rating: "$('.rating strong').text().replace('Rating', '').trim()",
+              status: "$('.spe span:contains(\"Status\")').text().split(':')[1]?.trim()",
+              studio: "$('.spe span:contains(\"Studio\")').text().split(':')[1]?.trim()",
+              updated_on: "$('.spe span:contains(\"Updated on\")').text().split(':')[1]?.trim()",
+              type: "$('.spe span:contains(\"Type\")').text().split(':')[1]?.trim()",
+              genres: "$('.genxed a').map((i, el) => $(el).text().trim()).get()",
+              synopsis: "$('.entry-content p').first().text().trim()",
+              episodeList: "$('.eplister ul li a').map((i, el) => ({ title: $(el).find('.epl-title').text().trim(), episode: $(el).find('.epl-num').text().trim(), url: $(el).attr('href') })).get()"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d) {
+          this.animeDetail = {
+            ...d,
+            metadata: {
+              status: d.status,
+              studio: d.studio,
+              updated_on: d.updated_on,
+              type: d.type
+            },
+            episodeList: (d.episodeList || []).reverse()
+          };
+        }
+      } catch(e) { console.error('Detail Fetch Error:', e); }
     },
     async fetchStream(url) {
-      const rawUrl=decodeURIComponent(url);
-      const d=await fetch(`https://puruboy-api.vercel.app/api/anime/anichin/stream?url=${encodeURIComponent(rawUrl)}`).then(r=>r.json());
-      this.streamData=d.result;
-      const links=this.streamData.streamingLinks||[];
-      const pref=links.findIndex(s=>s.server===this.preferredServerHost);
-      const start=pref!==-1?links[pref]:(links[0]||null);
-      if (start) this.changeServer(start.link,start.server,start.isProxy);
-      this.saveHistory();
+      let rawUrl = decodeURIComponent(url);
+      if (rawUrl.startsWith('/')) rawUrl = this.baseUrl + rawUrl;
+      try {
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: rawUrl,
+            output: JSON.stringify({
+              title: "$('.entry-title').text().trim()",
+              series: "$('.ts-breadcrumb li:nth-child(2) a span').text().trim()",
+              series_url: "$('.ts-breadcrumb li:nth-child(2) a').attr('href')",
+              streamingLinks: "$('.mirror option').map((i, el) => ({ server: $(el).text().trim(), link: $(el).val() })).get().filter(x => x.link)",
+              downloadLinks: "$('.soraddlx.soradlg .soraurlx').map((i, el) => ({ quality: $(el).find('strong').text().trim(), links: $(el).find('a').map((j, a) => ({ host: $(a).text().trim(), link: $(a).attr('href') })).get() })).get()",
+              prevEpisode: "$('.naveps .nvs a[rel=\"prev\"]').attr('href')",
+              allEpisodes: "$('.naveps .nvsc a').attr('href')",
+              nextEpisode: "$('.naveps .nvs a[rel=\"next\"]').attr('href')"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d) {
+          this.streamData = {
+            ...d,
+            navigation: { prevEpisode: d.prevEpisode, allEpisodes: d.allEpisodes, nextEpisode: d.nextEpisode }
+          };
+          const links = this.streamData.streamingLinks || [];
+          const pref = links.findIndex(s => s.server === this.preferredServerHost);
+          const start = pref !== -1 ? links[pref] : (links[0] || null);
+          if (start) this.changeServer(start.link, start.server, false);
+          this.saveHistory();
+        }
+      } catch(e) { console.error('Stream Fetch Error:', e); }
     },
     async fetchSchedule() {
       const cache = JSON.parse(localStorage.getItem('puruTV_schedule_cache') || 'null');
-      if (cache && (Date.now() - cache.timestamp < 3600000)) this.scheduleData = cache.data;
+      if (cache && (Date.now() - cache.timestamp < 3600000)) {
+        this.scheduleData = cache.data;
+        return;
+      }
       try {
-        const a=await fetch('https://puruboy-api.vercel.app/api/anime/anichin/schedule').then(r=>r.json());
-        if (a.success) {
-          this.scheduleData=a.result;
-          localStorage.setItem('puruTV_schedule_cache', JSON.stringify({timestamp: Date.now(), data: a.result}));
+        const res = await fetch('https://vercel-api-beta-red.vercel.app/api/scraper-web', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: this.baseUrl + '/schedule/',
+            output: JSON.stringify({
+              schedule: "$('.bixbox.schedulepage').map((i, el) => ({ day: $(el).find('.releases h3 span').text().trim(), list: $(el).find('.listupd .bs').map((j, item) => ({ title: $(item).find('.tt').text().trim(), url: $(item).find('.bsx a').attr('href'), thumbnail: $(item).find('.limit img').attr('src'), releaseTime: $(item).find('.bt .epx').text().trim(), nextEpisode: $(item).find('.bt .sb.Sub').text().trim() })).get(), totalCount: $(el).find('.listupd .bs').length })).get()"
+            })
+          })
+        });
+        const d = await res.json();
+        if (d && d.schedule) {
+          this.scheduleData = d.schedule;
+          localStorage.setItem('puruTV_schedule_cache', JSON.stringify({timestamp: Date.now(), data: d.schedule}));
         }
-      } catch(e){}
+      } catch(e) { console.error('Schedule Fetch Error:', e); }
     },
-    async changeServer(link,serverName,isProxy=false) {
-      this.preferredServerHost=serverName;
-      localStorage.setItem('puruTV_preferredServer',serverName);
-      if (isProxy) {
-        try { const d=await fetch(link).then(r=>r.json()); this.activeServer=d.result.embed_url; }
-        catch(e){}
-      } else { this.activeServer=link; }
+    async changeServer(link, serverName, isProxy = false) {
+      this.preferredServerHost = serverName;
+      localStorage.setItem('puruTV_preferredServer', serverName);
+      
+      try {
+        if (link.length > 30 && !link.includes('://')) {
+          const decoded = atob(link);
+          const match = decoded.match(/src=["']([^"']+)["']/);
+          if (match && match[1]) {
+            this.activeServer = match[1];
+            return;
+          }
+        }
+
+        if (isProxy) {
+          const d = await fetch(link).then(r => r.json());
+          this.activeServer = d.result.embed_url;
+        } else {
+          this.activeServer = link;
+        }
+      } catch (e) {
+        this.activeServer = link;
+      }
     }
   }
 }
