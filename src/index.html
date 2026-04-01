@@ -766,9 +766,12 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                   <p class="text-[10px] text-gray-500 mt-1">Otomatis kembali ke halaman terakhir saat membuka aplikasi.</p>
                 </div>
                 <button @click="openLastPage = !openLastPage; localStorage.setItem('puruTV_openLastPage', openLastPage)" 
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                  :class="openLastPage ? 'bg-blue-600' : 'bg-gray-700'">
-                  <span :class="openLastPage ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                  class="relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+                  :class="openLastPage ? 'bg-blue-600 shadow-lg shadow-blue-500/30' : 'bg-[#0f1117] border border-gray-800'">
+                  <span :class="openLastPage ? 'translate-x-7 bg-white' : 'translate-x-1 bg-gray-500'" 
+                    class="flex items-center justify-center h-4 w-4 transform rounded-full transition-all duration-300 shadow-md">
+                    <i x-show="openLastPage" class="fas fa-check text-[7px] text-blue-600"></i>
+                  </span>
                 </button>
               </div>
 
@@ -778,9 +781,12 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                   <p class="text-[10px] text-gray-500 mt-1">Mencegah iklan pop-up/redirect. <span class="text-amber-500/80 font-bold italic block mt-1"><i class="fas fa-exclamation-triangle mr-1"></i>Beberapa player mungkin tidak dapat dimuat jika fitur ini aktif.</span></p>
                 </div>
                 <button @click="adBlocker = !adBlocker; localStorage.setItem('puruTV_adBlocker', adBlocker)" 
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                  :class="adBlocker ? 'bg-blue-600' : 'bg-gray-700'">
-                  <span :class="adBlocker ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                  class="relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+                  :class="adBlocker ? 'bg-blue-600 shadow-lg shadow-blue-500/30' : 'bg-[#0f1117] border border-gray-800'">
+                  <span :class="adBlocker ? 'translate-x-7 bg-white' : 'translate-x-1 bg-gray-500'" 
+                    class="flex items-center justify-center h-4 w-4 transform rounded-full transition-all duration-300 shadow-md">
+                    <i x-show="adBlocker" class="fas fa-shield-alt text-[7px] text-blue-600"></i>
+                  </span>
                 </button>
               </div>
 
@@ -790,9 +796,12 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
                   <p class="text-[10px] text-gray-500 mt-1">Menampilkan pesan error sistem di bawah (berguna untuk pelaporan bug).</p>
                 </div>
                 <button @click="showErrorLogsSetting = !showErrorLogsSetting; localStorage.setItem('puruTV_showErrorLogs', showErrorLogsSetting)" 
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none"
-                  :class="showErrorLogsSetting ? 'bg-blue-600' : 'bg-gray-700'">
-                  <span :class="showErrorLogsSetting ? 'translate-x-6' : 'translate-x-1'" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform"></span>
+                  class="relative inline-flex h-6 w-12 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner"
+                  :class="showErrorLogsSetting ? 'bg-blue-600 shadow-lg shadow-blue-500/30' : 'bg-[#0f1117] border border-gray-800'">
+                  <span :class="showErrorLogsSetting ? 'translate-x-7 bg-white' : 'translate-x-1 bg-gray-500'" 
+                    class="flex items-center justify-center h-4 w-4 transform rounded-full transition-all duration-300 shadow-md">
+                    <i x-show="showErrorLogsSetting" class="fas fa-bug text-[7px] text-blue-600"></i>
+                  </span>
                 </button>
               </div>
 
@@ -1092,9 +1101,12 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
         </button>
       </div>
     </div>
-    <div x-show="aiLoading" class="py-16 flex flex-col items-center gap-4">
+    <div x-show="aiLoading" class="py-16 flex flex-col items-center gap-4 text-center">
       <div class="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-      <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest animate-pulse">AI sedang menganalisis...</p>
+      <div class="space-y-1">
+        <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest animate-pulse">AI sedang menganalisis...</p>
+        <p class="text-[9px] text-amber-500/80 font-bold italic">Tunggu respon AI selesai sebelum meminta TTS</p>
+      </div>
     </div>
     <div x-show="!aiLoading&&aiError" x-cloak class="py-8 text-center">
       <i class="fas fa-exclamation-triangle text-3xl text-yellow-500 mb-3"></i>
@@ -1213,7 +1225,7 @@ function puruTVApp() {
     streamData: { navigation:{} }, scheduleData: [],
     allGenres: [
       {name:'Action', slug:'action'}, {name:'Adventure', slug:'adventure'}, {name:'Cultivation', slug:'cultivation'},
-      {name:'Comedy', slug:'comedy'}, {name:'Drama', slug:'drama'}, {name:'Fantasy', slug:'fantasy'},
+      {name:'Comedy', slug:'comedy'}, {name:'Drama', slug:'drama'}, {name:'Ecchi', slug:'ecchi'}, {name:'Fantasy', slug:'fantasy'},
       {name:'Historical', slug:'historical'}, {name:'Horror', slug:'horror'}, {name:'Isekai', slug:'isekai'},
       {name:'Magic', slug:'magic'}, {name:'Martial Arts', slug:'martial-arts'}, {name:'Mystery', slug:'mystery'},
       {name:'Psychological', slug:'psychological'}, {name:'Romance', slug:'romance'}, {name:'Sci-fi', slug:'sci-fi'},
@@ -1479,13 +1491,32 @@ function puruTVApp() {
 
 
     async speakAIResult() {
-      if (this.aiAudioUrl) return;
+      if (this.aiAudioUrl || this.isSpeaking === true) return;
       if (this.isSpeaking === 'loading') return;
       if (!this.aiResult) return;
 
       const doc = new DOMParser().parseFromString(this.aiResult, 'text/html');
       const plainText = (doc.body.textContent || "").replace(/[#*`~_]/g, '').trim();
 
+      // Priority: Browser Native TTS
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(plainText);
+        utterance.lang = 'id-ID';
+        utterance.onstart = () => { this.isSpeaking = true; };
+        utterance.onend = () => { this.isSpeaking = false; };
+        utterance.onerror = () => { this.isSpeaking = false; };
+        
+        // Find Indonesian voice if available
+        const voices = window.speechSynthesis.getVoices();
+        const idVoice = voices.find(v => v.lang.includes('id-ID'));
+        if (idVoice) utterance.voice = idVoice;
+
+        window.speechSynthesis.speak(utterance);
+        return;
+      }
+
+      // Fallback: API Cloud TTS
       this.isSpeaking = 'loading';
       try {
         const res = await fetch(`${this.puruboyApi}/api/ai/dracin`, {
