@@ -207,9 +207,116 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 <!-- MAIN -->
 <main class="container mx-auto px-4 py-8">
 
-  <div x-show="loading" x-cloak class="flex flex-col items-center justify-center h-[70vh] gap-4">
-    <div class="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-    <div class="text-2xl font-black text-blue-500 tracking-tighter" x-text="loadProgress + '%'">0%</div>
+  <div x-show="loading" x-cloak>
+    <!-- Home Skeleton Loading -->
+    <template x-if="page === 'home'">
+      <div class="space-y-12 animate-pulse">
+        <!-- Banner Placeholder -->
+        <div class="h-[320px] md:h-[500px] bg-[#161922] rounded-[2.5rem] border border-white/5"></div>
+        
+        <!-- Horizontal/Grid Placeholder 1 -->
+        <section>
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-6 h-6 bg-[#161922] rounded-lg"></div>
+            <div class="w-48 h-6 bg-[#161922] rounded-lg"></div>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <template x-for="i in 5">
+              <div class="aspect-video bg-[#161922] rounded-2xl border border-white/5"></div>
+            </template>
+          </div>
+        </section>
+
+        <!-- Grid Placeholder 2 (Posters) -->
+        <section>
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-6 h-6 bg-[#161922] rounded-lg"></div>
+            <div class="w-40 h-6 bg-[#161922] rounded-lg"></div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
+            <template x-for="i in 6">
+              <div class="space-y-3">
+                <div class="aspect-poster bg-[#161922] rounded-2xl border border-white/5"></div>
+                <div class="h-3 bg-[#161922] rounded w-3/4"></div>
+              </div>
+            </template>
+          </div>
+        </section>
+      </div>
+    </template>
+
+    <!-- Detail Skeleton Loading -->
+    <template x-if="page === 'detail'">
+      <div class="max-w-6xl mx-auto animate-pulse">
+        <div class="flex flex-col md:flex-row gap-8 lg:gap-14">
+          <!-- Poster Skeleton -->
+          <div class="w-48 md:w-52 lg:w-56 flex-shrink-0 mx-auto md:mx-0">
+            <div class="aspect-poster rounded-[1.5rem] bg-[#161922] border border-white/5"></div>
+            <div class="mt-4 bg-[#161922] p-5 rounded-[1.25rem] border border-white/5 space-y-4">
+              <div class="flex justify-between items-center">
+                <div class="h-6 bg-white/5 rounded w-1/2"></div>
+                <div class="h-5 bg-white/5 rounded w-1/4"></div>
+              </div>
+              <div class="space-y-3 pt-4 border-t border-white/5">
+                <div class="h-3 bg-white/5 rounded w-full"></div>
+                <div class="h-3 bg-white/5 rounded w-3/4"></div>
+                <div class="h-3 bg-white/5 rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Info Skeleton -->
+          <div class="flex-1 min-w-0 space-y-6">
+            <div class="h-10 md:h-14 bg-[#161922] rounded-2xl w-3/4"></div>
+            <div class="flex flex-wrap gap-2">
+              <div class="h-6 w-20 bg-[#161922] rounded-full"></div>
+              <div class="h-6 w-24 bg-[#161922] rounded-full"></div>
+              <div class="h-6 w-16 bg-[#161922] rounded-full"></div>
+            </div>
+            <div class="bg-[#161922] h-40 rounded-[2rem] border border-white/5"></div>
+            <div class="h-12 bg-[#161922] rounded-2xl w-full"></div>
+            <div class="flex justify-between items-center">
+              <div class="h-6 w-32 bg-[#161922] rounded"></div>
+              <div class="h-8 w-24 bg-[#161922] rounded-xl"></div>
+            </div>
+            <div class="grid grid-cols-4 md:grid-cols-8 gap-2">
+              <template x-for="i in 16">
+                <div class="h-10 bg-[#161922] rounded-lg"></div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Results Skeleton Loading -->
+    <template x-if="page === 'results'">
+      <div class="animate-pulse">
+        <div class="flex justify-between items-center mb-8">
+          <div class="h-8 bg-[#161922] rounded-xl w-48"></div>
+          <div class="h-6 bg-[#161922] rounded-lg w-20"></div>
+        </div>
+        <div class="grid-r">
+          <template x-for="i in 10">
+            <div class="space-y-3">
+              <div class="aspect-poster bg-[#161922] rounded-2xl border border-white/5"></div>
+              <div class="h-3 bg-[#161922] rounded w-3/4"></div>
+              <div class="flex justify-between">
+                <div class="h-3 bg-[#161922] rounded w-1/4"></div>
+                <div class="h-3 bg-[#161922] rounded w-1/4"></div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </template>
+
+    <!-- Generic Spinner for other pages -->
+    <template x-if="page !== 'home' && page !== 'detail' && page !== 'results'">
+      <div class="flex flex-col items-center justify-center h-[70vh] gap-4">
+        <div class="w-16 h-16 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+        <div class="text-2xl font-black text-blue-500 tracking-tighter" x-text="loadProgress + '%'">0%</div>
+      </div>
+    </template>
   </div>
 
   <div x-show="!loading">
@@ -314,6 +421,43 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
               </div>
             </template>
           </div>
+        </section>
+
+        <!-- Recommendations -->
+        <section x-show="homeData.recommendations && homeData.recommendations.genres.length > 0">
+          <div class="sec-head">
+            <i class="fas fa-thumbs-up text-blue-500 text-xl"></i>
+            <h3 class="text-xl font-black uppercase italic tracking-wider">Rekomendasi</h3>
+          </div>
+          
+          <!-- Category Tabs -->
+          <div class="flex overflow-x-auto gap-2 mb-6 no-scrollbar pb-2">
+            <template x-for="gen in homeData.recommendations.genres" :key="gen.id">
+              <button @click="selectedRecTab = gen.id" 
+                class="flex-shrink-0 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border"
+                :class="selectedRecTab === gen.id ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20' : 'bg-[#161922] border-gray-800 text-gray-500 hover:text-gray-300'"
+                x-text="gen.name">
+              </button>
+            </template>
+          </div>
+
+          <!-- Items Grid -->
+          <template x-for="pane in homeData.recommendations.items" :key="'pane-'+pane.id">
+            <div x-show="selectedRecTab === pane.id" x-transition.opacity.duration.400ms class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              <template x-for="(item,i) in pane.list" :key="pane.id+'-item-'+i">
+                <div @click="go('detail', item.url)" class="card-poster group">
+                  <div class="relative aspect-poster overflow-hidden bg-[#1f232d]">
+                    <img :src="item.thumbnail" loading="lazy" class="w-full h-full object-cover">
+                    <div class="ep-badge bg-gray-900/80 backdrop-blur-md border border-white/10" x-text="item.episode"></div>
+                    <div class="play-overlay"><div class="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-300"><i class="fas fa-info text-white text-xl"></i></div></div>
+                  </div>
+                  <div class="p-3">
+                    <h4 class="text-[11px] font-bold line-clamp-2 group-hover:text-blue-400 transition" x-text="cleanTitle(item.title)"></h4>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
         </section>
 
         <!-- Anime Populer (Samehadaku) -->
@@ -920,7 +1064,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
               <i class="fas fa-tv text-white"></i>
             </div>
-            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.2</span></h3>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.3</span></h3>
             <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Streaming Donghua Subtitle Indonesia</p>
             <div class="flex justify-center gap-4 mt-6">
               <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
@@ -1000,7 +1144,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
   </div>
 </main>
 
-<footer class="container mx-auto px-4 py-6 border-t border-gray-800/50 text-center">
+<footer x-show="!loading" x-cloak class="container mx-auto px-4 py-6 border-t border-gray-800/50 text-center">
   <p class="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">
     Jika terjadi error atau bug, jangan ragu menghubungi kami lewat 
     <a href="https://wa.me/6283894391287" target="_blank" class="text-blue-500 hover:underline">WhatsApp</a>
@@ -1221,15 +1365,15 @@ function puruTVApp() {
     showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
     activeServer: '', currentPage: 1, hasNextPage: false, theme: 'blue',
     customColor: '#3b82f6',
-    homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [], animeLatest: [], animePopular: [] }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
+    selectedRecTab: '',
+    homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [], animeLatest: [], animePopular: [], recommendations: { genres: [], items: [] } }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
     streamData: { navigation:{} }, scheduleData: [],
     allGenres: [
-      {name:'Action', slug:'action'}, {name:'Adventure', slug:'adventure'}, {name:'Cultivation', slug:'cultivation'},
-      {name:'Comedy', slug:'comedy'}, {name:'Drama', slug:'drama'}, {name:'Ecchi', slug:'ecchi'}, {name:'Fantasy', slug:'fantasy'},
-      {name:'Historical', slug:'historical'}, {name:'Horror', slug:'horror'}, {name:'Isekai', slug:'isekai'},
-      {name:'Magic', slug:'magic'}, {name:'Martial Arts', slug:'martial-arts'}, {name:'Mystery', slug:'mystery'},
-      {name:'Psychological', slug:'psychological'}, {name:'Romance', slug:'romance'}, {name:'Sci-fi', slug:'sci-fi'},
-      {name:'School', slug:'school'}, {name:'Seinen', slug:'seinen'}, {name:'Supernatural', slug:'supernatural'},
+      {name:'Action', slug:'action'}, {name:'Adventure', slug:'adventure'}, {name:'Comedy', slug:'comedy'},
+      {name:'Cultivation', slug:'cultivation'}, {name:'Drama', slug:'drama'}, {name:'Fantasy', slug:'fantasy'},
+      {name:'Historical', slug:'historical'}, {name:'Isekai', slug:'isekai'}, {name:'Martial Arts', slug:'martial-arts'},
+      {name:'Mystery', slug:'mystery'}, {name:'Psychological', slug:'psychological'}, {name:'Reincarnation', slug:'reincarnation'},
+      {name:'Romance', slug:'romance'}, {name:'Sci-fi', slug:'sci-fi'}, {name:'Supernatural', slug:'supernatural'},
       {name:'Urban Fantasy', slug:'urban-fantasy'}
     ], listData: [],
     showComments: false, commentsLoading: false, commentsList: [], commentName: '', tempName: '', newCommentText: '', replyTo: null,
@@ -1270,8 +1414,7 @@ function puruTVApp() {
     },
 
     get currentType() { 
-      const url = this.activeUrl.toLowerCase();
-      return (url.includes('samehadaku') || url.includes('/anime/') || url.includes('/episode/')) ? 'Anime' : 'Donghua'; 
+      return this.activeUrl.includes('samehadaku') ? 'Anime' : 'Donghua'; 
     },
 
     async init() {
@@ -1421,8 +1564,9 @@ function puruTVApp() {
     },
 
     async loadPage(view, paramValue, pageNum = 1) {
-      if (view === 'stream' && paramValue && paramValue.includes('/anime/') && !paramValue.includes('episode')) {
-        view = 'detail';
+      window.scrollTo(0, 0);
+      if ((view === 'stream' || view === 'detail') && paramValue) {
+        view = paramValue.includes('episode') ? 'stream' : 'detail';
       }
 
       this.loading = true;
@@ -1452,7 +1596,6 @@ function puruTVApp() {
       this.loadProgress = 100;
       clearInterval(progInterval);
       setTimeout(() => { this.loading = false; }, 200);
-      window.scrollTo(0, 0);
       if (this.openLastPage && window.location.hash && window.location.hash !== '#/') {
         localStorage.setItem('puruTV_lastHash', window.location.hash);
       }
@@ -1662,7 +1805,7 @@ function puruTVApp() {
       const epMatch = urlParam.match(/(?:episode|eps)-(\d+)/i) || episode.match(/(?:Episode|Ep)\s*(\d+)/i);
       if (epMatch) epNum='Ep. '+epMatch[1];
       
-      const isAnime = urlParam.includes('samehadaku') || urlParam.includes('/anime/') || urlParam.includes('/episode/');
+      const isAnime = urlParam.includes('samehadaku');
       const idx=this.watchHistory.findIndex(h=>h.seriesTitle===seriesTitle);
       if (idx!==-1) this.watchHistory.splice(idx,1);
       
@@ -1778,7 +1921,9 @@ function puruTVApp() {
                 featuredSlider: "$('#slidertwo .swiper-slide.item').map((i, el) => ({ title: $(el).find('h2 a').text().trim(), thumbnail: $(el).find('.backdrop').attr('style')?.match(/url\\(['\"]?(.*?)['\"]?\\)/)?.[1] || $(el).find('img').attr('src'), url: $(el).find('h2 a').attr('href'), description: $(el).find('.info p').text().trim() })).get()",
                 popularToday: "$('.popularslider article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
                 latestReleases: "$('.listupd.normal article.bs').map((i, el) => ({ title: $(el).find('.tt h2').text().trim(), thumbnail: $(el).find('img').attr('src'), url: $(el).find('a').attr('href'), episode: $(el).find('.epx').text().trim() })).get()",
-                ongoingSidebar: "$('.ongoingseries ul li').map((i, el) => ({ title: $(el).find('.l').text().trim(), url: $(el).find('a').attr('href'), episode: $(el).find('.r').text().trim() })).get()"
+                ongoingSidebar: "$('.ongoingseries ul li').map((i, el) => ({ title: $(el).find('.l').text().trim(), url: $(el).find('a').attr('href'), episode: $(el).find('.r').text().trim() })).get()",
+                recGenres: "$('.series-gen .nav-tabs li a').map((i, e) => ({ id: $(e).attr('href').replace('#',''), name: $(e).text().trim() })).get()",
+                recItems: "$('.series-gen .tab-pane').map((i, e) => ({ id: $(e).attr('id'), list: $(e).find('article.bs').map((j, art) => ({ title: $(art).find('.tt h2').text().trim(), thumbnail: $(art).find('img').attr('src'), url: $(art).find('a').attr('href'), episode: $(art).find('.epx').text().trim() })).get() })).get()"
               })
             })
           }).then(r => r.json()),
@@ -1802,6 +1947,16 @@ function puruTVApp() {
           }));
           donghua.animeLatest = anime?.latestAnime || [];
           donghua.animePopular = anime?.popularAnime || [];
+          
+          // Process Recommendations
+          donghua.recommendations = { 
+            genres: donghua.recGenres || [], 
+            items: donghua.recItems || [] 
+          };
+          if (donghua.recommendations.genres.length > 0 && !this.selectedRecTab) {
+            this.selectedRecTab = donghua.recommendations.genres[0].id;
+          }
+
           this.homeData = donghua;
           localStorage.setItem('puruTV_home_cache', JSON.stringify({timestamp: Date.now(), data: donghua}));
         }
@@ -1830,8 +1985,8 @@ function puruTVApp() {
       const bD = this.baseUrl.replace(/\/+$/, '');
       const bA = this.animeBaseUrl.replace(/\/+$/, '');
       
-      const urlD = page > 1 ? `${bD}/genres/${slug}/page/${page}/` : `${bD}/genres/${slug}/`;
-      const urlA = page > 1 ? `${bA}/genre/${slug}/page/${page}/` : `${bA}/genre/${slug}/`;
+      const urlD = `${bD}/anime/?page=${page}&genre[0]=${slug}&status=&type=&sub=&order=update`;
+      const urlA = page > 1 ? `${bA}/genre/${slug}/page/${page}/?order=latest` : `${bA}/genre/${slug}/?order=latest`;
       
       try {
         const [resD, resA] = await Promise.all([
@@ -1964,8 +2119,8 @@ function puruTVApp() {
     },
     async fetchStream(url) {
       let rawUrl = decodeURIComponent(url);
-      // Deteksi anime yang lebih akurat untuk mode riwayat
-      let isAnime = rawUrl.includes('samehadaku') || rawUrl.includes('/anime/') || rawUrl.includes('/episode/');
+      // Deteksi tipe berdasarkan domain untuk menentukan scraper
+      let isAnime = rawUrl.includes('samehadaku');
       
       if (!rawUrl.startsWith('http')) {
         const base = isAnime ? this.animeBaseUrl : this.baseUrl;
@@ -2066,38 +2221,20 @@ function puruTVApp() {
         }
       } catch(e) { }
     },
-    async changeServer(link, serverName, isProxy = false) {
+    async changeServer(link, serverName) {
       this.preferredServerHost = serverName;
       localStorage.setItem('puruTV_preferredServer', serverName);
       
       try {
-        // Handle Samehadaku object server using PuruBoy API
+        // Handle Samehadaku object server
         if (typeof link === 'object' && link.post) {
-          const res = await fetch(`${this.puruboyApi}/api/anime/samehadaku/embed?post=${link.post}&nume=${link.nume}&type=${link.type}`);
-          const d = await res.json();
-          if (d.success && d.result && d.result.embed_url) {
-            this.activeServer = d.result.embed_url;
-          } else {
-            this.activeServer = '';
-          }
+          const res = await fetch(`${this.puruboyApi}/api/anime/samehadaku/embed?post=${link.post}&nume=${link.nume}&type=${link.type}`).then(r => r.json());
+          this.activeServer = (res.success && res.result?.embed_url) ? res.result.embed_url : '';
           return;
         }
 
-        if (typeof link === 'string' && link.length > 30 && !link.includes('://')) {
-          const decoded = atob(link);
-          const match = decoded.match(/src=["']([^"']+)["']/);
-          if (match && match[1]) {
-            this.activeServer = match[1];
-            return;
-          }
-        }
-
-        if (isProxy) {
-          const d = await fetch(link).then(r => r.json());
-          this.activeServer = d.result.embed_url;
-        } else {
-          this.activeServer = link;
-        }
+        // Handle direct string or URL
+        this.activeServer = typeof link === 'string' ? link : '';
       } catch (e) {
         this.activeServer = typeof link === 'string' ? link : '';
       }
