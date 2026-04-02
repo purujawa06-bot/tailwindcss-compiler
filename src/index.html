@@ -2138,9 +2138,10 @@ function puruTVApp() {
         nextEpisode: "$('.naveps .rght a:not(.nonex)').first().attr('href')"
       } : {
         title: "$('.entry-title').text().trim()",
-        series: "$('.ts-breadcrumb li:nth-child(2) a span').text().trim()",
-        series_url: "$('.ts-breadcrumb li:nth-child(2) a').attr('href')",
-        streamingLinks: "$('.mirror option').map((i, el) => ({ server: $(el).text().trim(), link: $(el).val() })).get().filter(x => x.link)",
+        series: "$('.ts-breadcrumb span:nth-child(2) a span').text().trim() || $('.ts-breadcrumb li:nth-child(2) a span').text().trim()",
+        series_url: "$('.ts-breadcrumb span:nth-child(2) a').attr('href') || $('.ts-breadcrumb li:nth-child(2) a').attr('href')",
+        streamingLinks: "$('.mirror option').map((i, el) => ({ server: $(el).text().trim(), link: $(el).val() })).get().filter(x => x.link && x.link !== '')",
+        defaultIframe: "$('#pembed iframe').attr('src')",
         downloadLinks: "$('.soraddlx.soradlg .soraurlx').map((i, el) => ({ quality: $(el).find('strong').text().trim(), links: $(el).find('a').map((j, a) => ({ host: $(a).text().trim(), link: $(a).attr('href') })).get() })).get()",
         prevEpisode: "$('.naveps .nvs a[rel=\"prev\"]').attr('href')",
         allEpisodes: "$('.naveps .nvsc a').attr('href')",
@@ -2155,11 +2156,15 @@ function puruTVApp() {
         });
         const d = await res.json();
         if (d) {
+          let links = d.streamingLinks || [];
+          if (d.defaultIframe && !links.some(l => l.link === d.defaultIframe)) {
+            links.unshift({ server: 'Default', link: d.defaultIframe });
+          }
           this.streamData = {
             ...d,
+            streamingLinks: links,
             navigation: { prevEpisode: d.prevEpisode, allEpisodes: d.allEpisodes, nextEpisode: d.nextEpisode }
           };
-          const links = this.streamData.streamingLinks || [];
           const pref = links.findIndex(s => s.server === this.preferredServerHost);
           const start = pref !== -1 ? links[pref] : (links[0] || null);
           if (start) {
@@ -2226,15 +2231,26 @@ function puruTVApp() {
       localStorage.setItem('puruTV_preferredServer', serverName);
       
       try {
-        // Handle Samehadaku object server
         if (typeof link === 'object' && link.post) {
           const res = await fetch(`${this.puruboyApi}/api/anime/samehadaku/embed?post=${link.post}&nume=${link.nume}&type=${link.type}`).then(r => r.json());
           this.activeServer = (res.success && res.result?.embed_url) ? res.result.embed_url : '';
           return;
         }
 
-        // Handle direct string or URL
-        this.activeServer = typeof link === 'string' ? link : '';
+        let target = typeof link === 'string' ? link : '';
+        
+        // Handle Base64 Encoded Mirror (Animestream/Anichin)
+        if (target && !target.startsWith('http') && target.length > 20) {
+          try {
+            const decoded = atob(target);
+            if (decoded.includes('<iframe')) {
+              const srcMatch = decoded.match(/src="([^"]+)"/);
+              if (srcMatch) target = srcMatch[1];
+            }
+          } catch (e) { }
+        }
+
+        this.activeServer = target;
       } catch (e) {
         this.activeServer = typeof link === 'string' ? link : '';
       }
