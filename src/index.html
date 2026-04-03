@@ -617,6 +617,10 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
           </div>
           <!-- Info -->
           <div class="flex-1 min-w-0">
+            <button @click="prevPage === 'results' ? window.history.back() : go('home')" class="text-blue-500 text-[10px] font-black uppercase hover:underline mb-2 flex items-center gap-1 tracking-widest">
+              <i class="fas fa-arrow-left"></i>
+              <span x-text="prevPage === 'results' ? (searchTitle.includes('Genre') ? 'back to genre' : 'back to search') : 'back home'"></span>
+            </button>
             <h1 class="text-3xl md:text-5xl font-black mb-4 leading-tight" x-text="animeDetail.title"></h1>
             <div class="flex flex-wrap gap-2 mb-8">
               <template x-for="g in animeDetail.genres" :key="g">
@@ -1064,7 +1068,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
               <i class="fas fa-tv text-white"></i>
             </div>
-            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.3</span></h3>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.4</span></h3>
             <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Streaming Donghua Subtitle Indonesia</p>
             <div class="flex justify-center gap-4 mt-6">
               <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
@@ -1358,7 +1362,7 @@ function puruTVApp() {
     title: 'PurTV',
     baseUrl: 'https://anichin.moe',
     animeBaseUrl: 'https://v2.samehadaku.how/',
-    page: 'home', loading: true, loadProgress: 0, sliderIndex: 0, epSort: 'desc',
+    page: 'home', prevPage: '', loading: true, loadProgress: 0, sliderIndex: 0, epSort: 'desc',
     apiUrl: 'https://vercel-api-beta-red.vercel.app/api/scraper-web',
     puruboyApi: 'https://puruboy-api.vercel.app',
     activeUrl: '',
@@ -1573,6 +1577,7 @@ function puruTVApp() {
       this.loadProgress = 0;
       let progInterval = setInterval(() => { if(this.loadProgress < 90) this.loadProgress += Math.floor(Math.random() * 10) + 2; }, 100);
 
+      this.prevPage = this.page;
       this.page = view;
       this.activeUrl = paramValue || '';
       this.currentPage = pageNum;
@@ -2069,16 +2074,16 @@ function puruTVApp() {
       
       const isAnime = rawUrl.includes('samehadaku') || rawUrl.includes('samehadaku.how');
       const outputConfig = isAnime ? {
-        title: "$('.anim-detail').text().replace('Detail Anime ', '').trim()",
+        title: "$('.entry-header .entry-title').text().replace('Sub Indo', '').trim() || $('.anim-detail').text().replace('Detail Anime ', '').trim()",
         thumbnail: "$('.thumb img').attr('src')",
-        rating: "$('.archiveanime-rating span[itemprop=\"ratingValue\"]').text().trim()",
+        rating: "$('.archiveanime-rating span').first().text().trim() || $('.rating strong').text().replace('Rating', '').trim() || '?'",
         status: "$('.spe span:contains(\"Status\")').text().replace('Status', '').trim()",
         studio: "$('.spe span:contains(\"Studio\")').text().replace('Studio', '').trim()",
         updated_on: "$('.spe span:contains(\"Released\")').text().replace('Released:', '').trim()",
         type: "$('.spe span:contains(\"Type\")').text().replace('Type', '').trim()",
         genres: "$('.genre-info a').map((i, el) => $(el).text().trim()).get()",
-        synopsis: "$('.desc .entry-content p').first().text().trim()",
-        episodeList: "$('.lstepsiode.listeps ul li').map((i, el) => ({ title: $(el).find('.lchx a').text().trim(), episode: $(el).find('.eps a').text().trim(), url: $(el).find('a').attr('href') })).get()"
+        synopsis: "$('.desc .entry-content p').map((i, el) => $(el).text().trim()).get().join('\\n\\n') || $('.desc .entry-content').text().trim()",
+        episodeList: "$('.lstepsiode.listeps ul li').map((i, el) => ({ title: $(el).find('.lchx a').text().trim(), episode: $(el).find('.eps a').text().trim(), url: $(el).find('.lchx a').attr('href') })).get()"
       } : {
         title: "$('.entry-title').text().trim()",
         thumbnail: "$('.thumb img').attr('src')",
