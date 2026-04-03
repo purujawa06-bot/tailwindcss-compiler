@@ -672,12 +672,20 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <i class="fas fa-arrow-left"></i><span>back detail</span>
           </button>
         </div>
+
         <!-- Player -->
-        <div class="bg-black rounded-[2rem] overflow-hidden shadow-2xl mb-8 aspect-video ring-1 ring-gray-800">
-          <!-- Sandbox added to block ads/redirects from third-party players -->
-          <iframe :src="activeServer" class="w-full h-full" allowfullscreen frameborder="0" 
-            :sandbox="adBlocker ? 'allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-presentation' : null"></iframe>
+        <div class="bg-black rounded-[2rem] overflow-hidden shadow-2xl mb-8 aspect-video ring-1 ring-gray-800 relative group/player">
+          <template x-if="!isDirectVideo">
+            <iframe :src="activeServer" class="w-full h-full" allowfullscreen frameborder="0" 
+              :sandbox="adBlocker ? 'allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-presentation' : null"></iframe>
+          </template>
+          <template x-if="isDirectVideo">
+            <div class="w-full h-full relative" wire:ignore>
+              <video id="purtv-player" class="w-full h-full bg-black object-contain" :src="activeServer" controls autoplay preload="auto" playsinline></video>
+            </div>
+          </template>
         </div>
+
         <!-- Server Selector -->
         <div class="flex flex-wrap gap-2 mb-6">
           <template x-for="(srv,si) in (streamData.streamingLinks||[])" :key="'srv-'+si">
@@ -688,6 +696,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             </button>
           </template>
         </div>
+
         <!-- Navigation -->
         <div class="grid grid-cols-3 gap-3 bg-[#161922] p-3 rounded-2xl border border-gray-800 mb-6">
           <button @click="go('stream',streamData.navigation?.prevEpisode)" :disabled="!streamData.navigation?.prevEpisode"
@@ -1367,7 +1376,7 @@ function puruTVApp() {
     puruboyApi: 'https://puruboy-api.vercel.app',
     activeUrl: '',
     showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
-    activeServer: '', currentPage: 1, hasNextPage: false, theme: 'blue',
+    activeServer: '', isDirectVideo: false, currentPage: 1, hasNextPage: false, theme: 'blue',
     customColor: '#3b82f6',
     selectedRecTab: '',
     homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [], animeLatest: [], animePopular: [], recommendations: { genres: [], items: [] } }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
@@ -1384,6 +1393,7 @@ function puruTVApp() {
     preferredServerHost: '', searchTitle: '',
     aiPanel: false, aiLoading: false, aiResult: '', aiError: '', aiTitle: '', isSpeaking: false, aiAudioUrl: '',
     isStandalone: false, openLastPage: false, adBlocker: false, showErrorLogsSetting: false, showErrorModal: false,
+    showOverlay: false, overlayTimeout: null,
 
     showSchedulePanel: false,
     selectedScheduleDay: 'all',
@@ -1569,11 +1579,17 @@ function puruTVApp() {
 
     async loadPage(view, paramValue, pageNum = 1) {
       window.scrollTo(0, 0);
+      
+      // Stop native video before navigating
+      const oldPlayer = document.getElementById('purtv-player');
+      if (oldPlayer) { oldPlayer.pause(); oldPlayer.src = ""; oldPlayer.load(); }
+
       if ((view === 'stream' || view === 'detail') && paramValue) {
         view = paramValue.includes('episode') ? 'stream' : 'detail';
       }
 
       this.loading = true;
+      this.isDirectVideo = false; // Reset direct player state
       this.loadProgress = 0;
       let progInterval = setInterval(() => { if(this.loadProgress < 90) this.loadProgress += Math.floor(Math.random() * 10) + 2; }, 100);
 
@@ -2162,6 +2178,30 @@ function puruTVApp() {
         const d = await res.json();
         if (d) {
           let links = d.streamingLinks || [];
+
+          // Custom Logic for PurTV Anime (Filedon Stream)
+          if (isAnime && d.downloadLinks) {
+            const checkQual = (tag) => {
+              const group = d.downloadLinks.find(dl => (dl.quality || '').toUpperCase().includes(tag.toUpperCase()));
+              return group ? (group.links || []).find(l => (l.link || '').includes('filedon.co')) : null;
+            };
+            // Prioritas: MP4HD -> FULLHD -> MP4 480p
+            const fLink = checkQual('MP4HD') || checkQual('FULLHD') || checkQual('MP4 480p');
+            if (fLink && !links.some(l => l.server === 'PurTV Anime')) {
+              links.unshift({ server: 'PurTV Anime', link: fLink.link, isProxy: false });
+            }
+          }
+
+          // Custom Logic for OK.RU Scraper (Labeling & Mapping)
+          links = links.map(l => {
+            const linkStr = (typeof l === 'string' ? l : l.link) || '';
+            const srv = (l.server || '').toLowerCase();
+            if (linkStr.includes('ok.ru') || srv.includes('okru') || srv.includes('ok.ru')) {
+              return { ...l, server: 'PurTV Donghua', link: linkStr, isProxy: false };
+            }
+            return l;
+          });
+
           if (d.defaultIframe && !links.some(l => l.link === d.defaultIframe)) {
             links.unshift({ server: 'Default', link: d.defaultIframe });
           }
@@ -2173,7 +2213,7 @@ function puruTVApp() {
           const pref = links.findIndex(s => s.server === this.preferredServerHost);
           const start = pref !== -1 ? links[pref] : (links[0] || null);
           if (start) {
-            this.changeServer(start.link || start, start.server, false);
+            this.changeServer(start.link || start, start.server, start.isProxy || false);
           }
           this.saveHistory();
         }
@@ -2231,9 +2271,38 @@ function puruTVApp() {
         }
       } catch(e) { }
     },
-    async changeServer(link, serverName) {
+    async changeServer(link, serverName, skipConvert = false) {
       this.preferredServerHost = serverName;
       localStorage.setItem('puruTV_preferredServer', serverName);
+      
+      let target = (typeof link === 'string' ? link : link.link) || '';
+
+      // Decoding Base64 first to expose hidden URLs (like OK.RU or direct MP4)
+      if (target && !target.startsWith('http') && target.length > 20) {
+        try {
+          const decoded = atob(target);
+          if (decoded.includes('<iframe') || decoded.includes('<script') || decoded.includes('<div')) {
+             // Handle raw HTML embed if any
+             const srcMatch = decoded.match(/src="([^"]+)"/);
+             if (srcMatch) target = srcMatch[1];
+          } else if (decoded.startsWith('http')) {
+             target = decoded;
+          }
+        } catch (e) { }
+      }
+
+      const isDirectUrl = (url) => {
+        if (!url || typeof url !== 'string') return false;
+        return /\.(mp4|m3u8|webm|ogv|mkv)(\?.*)?$/i.test(url) || 
+               url.includes('/storage/') || 
+               url.includes('filedon.co/d/') || 
+               url.includes('okcdn.ru') || 
+               url.includes('f-p-2.top');
+      };
+
+      // Reset states immediately to avoid browser hijacking/downloading
+      this.activeServer = '';
+      this.isDirectVideo = isDirectUrl(target);
       
       try {
         if (typeof link === 'object' && link.post) {
@@ -2242,23 +2311,104 @@ function puruTVApp() {
           return;
         }
 
-        let target = typeof link === 'string' ? link : '';
-        
-        // Handle Base64 Encoded Mirror (Animestream/Anichin)
-        if (target && !target.startsWith('http') && target.length > 20) {
+        if (!skipConvert && target.includes('filedon.co') && !this.isDirectVideo) {
+          if (!target.includes('/embed/')) {
+            target = target.replace('/view/', '/embed/').replace('/v/', '/embed/').replace('/d/', '/embed/');
+            try {
+              const uObj = new URL(target);
+              if (!uObj.pathname.startsWith('/embed')) target = uObj.origin + '/embed' + uObj.pathname;
+            } catch(e) {}
+          }
+          
           try {
-            const decoded = atob(target);
-            if (decoded.includes('<iframe')) {
-              const srcMatch = decoded.match(/src="([^"]+)"/);
-              if (srcMatch) target = srcMatch[1];
+            const html = await fetch(`https://vercel-api-beta-red.vercel.app/api/fetch?get=${encodeURIComponent(target)}`).then(r => r.text());
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const appDataRaw = doc.querySelector('#app')?.getAttribute('data-page');
+
+            if (appDataRaw) {
+              const { props } = JSON.parse(appDataRaw);
+              if (props?.url) {
+                target = props.url;
+                this.isDirectVideo = true;
+              }
+            }
+          } catch(e) { this.isDirectVideo = false; }
+        }
+
+
+        // OK.RU Direct Scraper (Enhanced for Servers)
+        if (!skipConvert && target.includes('ok.ru')) {
+          try {
+            let okUrl = target.includes('videoembed') ? target : target.replace('ok.ru/video/', 'ok.ru/videoembed/');
+            if (okUrl.startsWith('//')) okUrl = 'https:' + okUrl;
+            
+            const html = await fetch(`https://vercel-api-beta-red.vercel.app/api/fetch?get=${encodeURIComponent(okUrl)}`).then(r => r.text());
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const okVideo = doc.querySelector('div[data-module="OKVideo"]');
+            if (okVideo) {
+              const options = JSON.parse(okVideo.getAttribute('data-options'));
+              let metadata = options.flashvars.metadata;
+              if (typeof metadata === 'string') metadata = JSON.parse(metadata);
+              
+
+          if (metadata) {
+            // Priority: Lock to Direct High Quality (Full/HD) if available
+            const qOrder = { 'full': 5, 'hd': 4, 'sd': 3, 'low': 2, 'lowest': 1, 'mobile': 0 };
+            const sortedVideos = (metadata.videos || []).sort((a, b) => (qOrder[b.name] || 0) - (qOrder[a.name] || 0));
+            const bestVideo = sortedVideos[0];
+
+            if (bestVideo && (bestVideo.name === 'full' || bestVideo.name === 'hd')) {
+              target = bestVideo.url;
+              this.isDirectVideo = true;
+            } else if (metadata.hlsManifestUrl) {
+              target = metadata.hlsManifestUrl.startsWith('//') ? 'https:' + metadata.hlsManifestUrl : metadata.hlsManifestUrl;
+              this.isDirectVideo = true;
+            } else if (bestVideo) {
+              target = bestVideo.url;
+              this.isDirectVideo = true;
+            }
+          }
+
             }
           } catch (e) { }
         }
 
+        
+
         this.activeServer = target;
+        // Re-check after potential conversions
+        this.isDirectVideo = isDirectUrl(this.activeServer);
+
+
+        if (this.isDirectVideo) {
+          this.$nextTick(() => {
+            setTimeout(() => {
+              const player = document.getElementById('purtv-player');
+              if (player) {
+                player.load();
+                player.play().catch(() => {});
+              }
+            }, 100);
+          });
+        }
       } catch (e) {
         this.activeServer = typeof link === 'string' ? link : '';
+        this.isDirectVideo = isDirectUrl(this.activeServer);
       }
+    },
+    toggleOverlay() {
+      if (!this.isDirectVideo) return;
+      this.showOverlay = true;
+      if (this.overlayTimeout) clearTimeout(this.overlayTimeout);
+      this.overlayTimeout = setTimeout(() => { this.showOverlay = false; }, 2500);
+    },
+    skipTime(seconds) {
+      try {
+        const player = document.getElementById('purtv-player');
+        if (player) {
+          player.currentTime = Math.max(0, player.currentTime + seconds);
+        }
+      } catch(e) {}
     }
   }
 }
