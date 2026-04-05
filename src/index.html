@@ -161,13 +161,16 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
     </div>
     <nav class="flex gap-8 items-center font-bold text-sm uppercase tracking-widest">
       <template x-for="n in navLinks" :key="n.view">
-        <a href="#" @click.prevent="go(n.view)" :class="isActive(n.match)?'text-blue-500':'text-gray-400 hover:text-blue-400'" class="transition flex items-center gap-1.5">
+        <a href="#" @click.prevent="go(n.view)" :class="[isActive(n.match)?'text-blue-500':'text-gray-400 hover:text-blue-400', loading ? 'pointer-events-none opacity-50' : '']" class="transition flex items-center gap-1.5">
           <i :class="n.icon+' text-xs'" x-show="n.icon"></i><span x-text="n.label"></span>
           <span x-show="n.view==='history' && watchHistory.length>0" class="bg-blue-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full" x-text="watchHistory.length"></span>
         </a>
       </template>
     </nav>
     <div class="flex items-center gap-3">
+      <button @click="showInfoModal = true" class="w-10 h-10 flex items-center justify-center bg-[#0f1117] border border-gray-700 rounded-xl text-blue-500 hover:bg-blue-600 hover:text-white transition shadow-sm" title="Informasi Server">
+        <i class="fas fa-info"></i>
+      </button>
       <button @click="go('schedule')" class="w-10 h-10 flex items-center justify-center bg-[#0f1117] border border-gray-700 rounded-xl text-gray-400 hover:text-blue-500 hover:border-blue-500 transition shadow-sm" title="Jadwal Rilis">
         <i class="fas fa-calendar-day"></i>
       </button>
@@ -190,8 +193,9 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
     <span>Pur<span class="text-blue-500">TV</span></span>
   </span>
   <div class="flex items-center gap-2">
-    <button @click="go('schedule')" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-xl text-gray-400"><i class="fas fa-calendar-day"></i></button>
-    <button @click="showSearch=!showSearch" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-full text-gray-400"><i class="fas fa-search"></i></button>
+    <button @click="showInfoModal = true" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-xl text-blue-500"><i class="fas fa-info"></i></button>
+    <button @click="go('schedule')" :disabled="loading" :class="loading ? 'opacity-50' : ''" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-xl text-gray-400"><i class="fas fa-calendar-day"></i></button>
+    <button @click="showSearch=!showSearch" :disabled="loading" :class="loading ? 'opacity-50' : ''" class="w-10 h-10 flex items-center justify-center bg-[#1f232d] rounded-full text-gray-400"><i class="fas fa-search"></i></button>
   </div>
 </div>
 
@@ -587,9 +591,9 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
         </div>
         <!-- Pagination -->
         <div x-show="listData.length>0" class="mt-12 flex justify-center items-center gap-3">
-          <button @click="changePage(currentPage-1)" :disabled="currentPage<=1" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+          <button @click="changePage(currentPage-1)" :disabled="currentPage<=1 || loading" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
           <div class="bg-blue-600 px-6 py-2 rounded-xl font-black text-xs uppercase"><i class="fas fa-book-open mr-2"></i>Hal <span x-text="currentPage"></span></div>
-          <button @click="changePage(currentPage+1)" :disabled="!hasNextPage" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-right"></i></button>
+          <button @click="changePage(currentPage+1)" :disabled="!hasNextPage || loading" class="w-11 h-11 bg-[#161922] rounded-xl disabled:opacity-20 flex items-center justify-center"><i class="fas fa-arrow-right"></i></button>
         </div>
       </div>
     </template>
@@ -1077,7 +1081,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
             <div class="bg-blue-600 w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
               <i class="fas fa-tv text-white"></i>
             </div>
-            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.4</span></h3>
+            <h3 class="text-xl font-black text-white tracking-tighter">Pur<span class="text-blue-500">TV</span> <span class="text-[10px] bg-gray-800 px-2 py-0.5 rounded ml-1 text-gray-400">v3.5</span></h3>
             <p class="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-[.2em]">Streaming Donghua Subtitle Indonesia</p>
             <div class="flex justify-center gap-4 mt-6">
               <a href="https://github.com/purujawa06-bot" target="_blank" class="text-gray-500 hover:text-blue-500 transition"><i class="fab fa-github"></i></a>
@@ -1167,7 +1171,7 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 <!-- MOBILE BOTTOM NAV -->
 <nav class="md:hidden fixed bottom-0 w-full glass border-t border-gray-800 z-50 flex justify-around items-center py-4 landscape:py-2 nav-mobile-landscape rounded-t-3xl shadow-2xl">
   <template x-for="n in navLinks.filter(x=>x.mobile)" :key="'mn-'+n.view">
-    <a href="#" @click.prevent="go(n.view)" class="flex flex-col items-center gap-1 relative transition-colors duration-300" :class="isActive(n.match)?'text-blue-500':'text-gray-500'">
+    <a href="#" @click.prevent="go(n.view)" class="flex flex-col items-center gap-1 relative transition-colors duration-300" :class="[isActive(n.match)?'text-blue-500':'text-gray-500', loading ? 'pointer-events-none opacity-40' : '']">
       <span class="relative transition-transform duration-300" :class="isActive(n.match) ? 'scale-125 -translate-y-1.5' : ''">
         <i :class="n.icon+' text-xl'"></i>
         <span x-show="n.view==='history'&&watchHistory.length>0" x-cloak class="absolute -top-1.5 -right-2.5 bg-blue-600 text-white text-[8px] font-black px-1 rounded-full" x-text="watchHistory.length"></span>
@@ -1203,6 +1207,25 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 <div x-show="importToast.show" x-cloak x-transition class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-[300] px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2" :class="importToast.ok?'bg-green-600 text-white':'bg-red-600 text-white'">
   <i :class="importToast.ok?'fas fa-check-circle':'fas fa-times-circle'"></i>
   <span x-text="importToast.msg"></span>
+</div>
+
+<!-- INFO SERVER MODAL -->
+<div x-show="showInfoModal" x-cloak class="confirm-overlay" @click.self="showInfoModal=false">
+  <div class="confirm-panel !border-blue-500/30">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-info-circle text-lg text-blue-400"></i>
+      </div>
+      <div>
+        <h3 class="font-black text-white text-base leading-tight">Optimasi Server</h3>
+        <p class="text-[9px] font-black uppercase text-blue-400 tracking-widest mt-0.5">Tips Streaming</p>
+      </div>
+    </div>
+    <p class="text-gray-400 text-sm mb-6 leading-relaxed">Jika tersedia pilihan server bertanda <b>PurTV</b> (seperti <i>PurTV filedon</i> atau <i>PurTV ok.ru</i>), sangat disarankan untuk menggunakannya terlebih dahulu karena sudah kami optimalkan untuk pengalaman menonton yang lebih stabil.</p>
+    <button @click="showInfoModal=false" class="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-widest transition">
+      Siapp, Mengerti!
+    </button>
+  </div>
 </div>
 
 <!-- GLOBAL ERROR MODAL -->
@@ -1392,7 +1415,7 @@ function puruTVApp() {
     showComments: false, commentsLoading: false, commentsList: [], commentName: '', tempName: '', newCommentText: '', replyTo: null,
     preferredServerHost: '', searchTitle: '',
     aiPanel: false, aiLoading: false, aiResult: '', aiError: '', aiTitle: '', isSpeaking: false, aiAudioUrl: '',
-    isStandalone: false, openLastPage: false, adBlocker: false, showErrorLogsSetting: false, showErrorModal: false,
+    isStandalone: false, openLastPage: false, adBlocker: false, showErrorLogsSetting: false, showErrorModal: false, showInfoModal: false,
     showOverlay: false, overlayTimeout: null,
 
     showSchedulePanel: false,
@@ -1454,6 +1477,18 @@ function puruTVApp() {
       
       // Hash Navigation Listener
       window.addEventListener('hashchange', () => this.handleHashChange());
+
+      // Keyboard Shortcuts for Player
+      window.addEventListener('keydown', (e) => {
+        if (this.page !== 'stream' || !this.isDirectVideo) return;
+        if (e.key === 'ArrowRight') this.skipTime(10);
+        if (e.key === 'ArrowLeft') this.skipTime(-10);
+        if (e.key === ' ' || e.key === 'k') {
+          e.preventDefault();
+          const p = document.getElementById('purtv-player');
+          if (p) p.paused ? p.play() : p.pause();
+        }
+      });
       
       // Anti-Hijack: Prevent aggressive player ads from redirecting the main page
       window.addEventListener('beforeunload', (e) => {
@@ -1567,6 +1602,7 @@ function puruTVApp() {
     },
 
     go(view, paramValue) {
+      if (this.loading) return;
       if (view === 'schedule') {
         this.showSchedulePanel = true;
         if (!this.scheduleData.length) this.fetchSchedule();
@@ -1623,6 +1659,7 @@ function puruTVApp() {
     },
 
     changePage(n) {
+      if (this.loading) return;
       const hashParts = window.location.hash.slice(2).split('/');
       const view = hashParts[0] || 'results';
       const param = hashParts[1] || '';
@@ -2179,7 +2216,7 @@ function puruTVApp() {
         if (d) {
           let links = d.streamingLinks || [];
 
-          // Custom Logic for PurTV Anime (Filedon Stream)
+          // Custom Logic for PurTV filedon (Filedon Stream)
           if (isAnime && d.downloadLinks) {
             const checkQual = (tag) => {
               const group = d.downloadLinks.find(dl => (dl.quality || '').toUpperCase().includes(tag.toUpperCase()));
@@ -2187,17 +2224,17 @@ function puruTVApp() {
             };
             // Prioritas: MP4HD -> FULLHD -> MP4 480p
             const fLink = checkQual('MP4HD') || checkQual('FULLHD') || checkQual('MP4 480p');
-            if (fLink && !links.some(l => l.server === 'PurTV Anime')) {
-              links.unshift({ server: 'PurTV Anime', link: fLink.link, isProxy: false });
+            if (fLink && !links.some(l => l.server === 'PurTV filedon')) {
+              links.unshift({ server: 'PurTV filedon', link: fLink.link, isProxy: false });
             }
           }
 
-          // Custom Logic for OK.RU Scraper (Labeling & Mapping)
+          // Custom Logic for PurTV ok.ru Scraper (Labeling & Mapping)
           links = links.map(l => {
             const linkStr = (typeof l === 'string' ? l : l.link) || '';
             const srv = (l.server || '').toLowerCase();
             if (linkStr.includes('ok.ru') || srv.includes('okru') || srv.includes('ok.ru')) {
-              return { ...l, server: 'PurTV Donghua', link: linkStr, isProxy: false };
+              return { ...l, server: 'PurTV ok.ru', link: linkStr, isProxy: false };
             }
             return l;
           });
@@ -2406,8 +2443,12 @@ function puruTVApp() {
     skipTime(seconds) {
       try {
         const player = document.getElementById('purtv-player');
-        if (player) {
-          player.currentTime = Math.max(0, player.currentTime + seconds);
+        // Validasi readyState >= 1 (HAVE_METADATA) untuk memastikan durasi sudah tersedia
+        if (player && player.readyState >= 1 && !isNaN(player.duration)) {
+          let target = player.currentTime + seconds;
+          // Clamp nilai antara 0 dan durasi minus sedikit buffer agar tidak stuck di akhir video
+          player.currentTime = Math.max(0, Math.min(target, player.duration - 1.5));
+          this.toggleOverlay();
         }
       } catch(e) {}
     }
