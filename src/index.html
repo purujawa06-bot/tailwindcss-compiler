@@ -28,7 +28,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js" referrerpolicy="no-referrer"></script>
 <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 [x-cloak]{display:none!important}
 :root{--bg:#0f1117;--card:#161922;--blue:#3b82f6;--border:#1f2535}
@@ -36,12 +35,6 @@ body{background:var(--bg);padding-bottom:80px;scroll-behavior:smooth}
 :root { --plyr-color-main: var(--blue); }
 .plyr { border-radius: 2rem; overflow: hidden; }
 .plyr--video { background: #000; }
-.plyr__skip-controls{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;gap:7rem;z-index:20;pointer-events:none;transition:opacity .4s cubic-bezier(0.4, 0, 0.2, 1),visibility .4s}
-.skip-btn{pointer-events:auto;background:rgba(15, 23, 42, 0.6);border:2px solid rgba(255,255,255,0.1);color:#fff;width:65px;height:65px;min-width:65px;min-height:65px;flex-shrink:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:900;backdrop-filter:blur(8px);transition:all .3s cubic-bezier(0.34, 1.56, 0.64, 1);cursor:pointer;box-shadow:0 10px 25px -5px rgba(0,0,0,0.5)}
-.skip-btn:hover{background:var(--blue);border-color:rgba(255,255,255,0.5);transform:scale(1.15);box-shadow:0 0 25px rgba(var(--blue-rgb),0.5)}
-.skip-btn:active{transform:scale(0.9)}
-.skip-btn i{font-size:20px;margin-bottom:4px}
-.plyr--hide-controls .plyr__skip-controls{opacity:0;visibility:hidden}
 @media(min-width:768px){body{padding-bottom:20px}}
 .aspect-poster{aspect-ratio:2/3}
 .glass{background:rgba(22,25,34,.9);backdrop-filter:blur(15px)}
@@ -691,23 +684,8 @@ body.theme-rainbow .ai-ring::before{background:linear-gradient(45deg, var(--rb-1
 
         <!-- Player -->
         <div class="bg-black rounded-[2rem] overflow-hidden shadow-2xl mb-8 aspect-video ring-1 ring-gray-800 relative group/player">
-          <template x-if="!isDirectVideo">
-            <iframe :src="activeServer" class="w-full h-full" allowfullscreen frameborder="0" 
-              :sandbox="adBlocker ? 'allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-presentation' : null"></iframe>
-          </template>
-          <template x-if="isDirectVideo">
-            <div class="w-full h-full relative" wire:ignore>
-              <video id="purtv-player" class="w-full h-full" playsinline controls></video>
-              <div class="plyr__skip-controls">
-                <button @click="skipTime(-5)" class="skip-btn" title="Mundur 5 detik">
-                  <i class="fas fa-undo"></i><span>-5s</span>
-                </button>
-                <button @click="skipTime(10)" class="skip-btn" title="Maju 10 detik">
-                  <i class="fas fa-redo"></i><span>+10s</span>
-                </button>
-              </div>
-            </div>
-          </template>
+          <iframe :src="activeServer" class="w-full h-full" allowfullscreen frameborder="0" 
+            :sandbox="adBlocker ? 'allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-presentation' : null"></iframe>
         </div>
 
         <!-- Server Selector -->
@@ -1428,7 +1406,7 @@ function puruTVApp() {
     puruboyApi: 'https://puruboy-api.vercel.app',
     activeUrl: '',
     showSearch: false, searchQuery: '', suggestions: [], showSuggestions: false,
-    activeServer: '', isDirectVideo: false, playerInstance: null, currentPage: 1, hasNextPage: false, theme: 'blue',
+    activeServer: '', currentPage: 1, hasNextPage: false, theme: 'blue',
     customColor: '#3b82f6',
     selectedRecTab: '',
     homeData: { featuredSlider: [], popularToday: [], latestReleases: [], ongoingSidebar: [], animeLatest: [], animePopular: [], recommendations: { genres: [], items: [] } }, animeDetail: { metadata:{}, genres:[], episodeList:[] },
@@ -1505,18 +1483,6 @@ function puruTVApp() {
       
       // Hash Navigation Listener
       window.addEventListener('hashchange', () => this.handleHashChange());
-
-      // Keyboard Shortcuts for Player
-      window.addEventListener('keydown', (e) => {
-        if (this.page !== 'stream' || !this.isDirectVideo) return;
-        if (e.key === 'ArrowRight') this.skipTime(10);
-        if (e.key === 'ArrowLeft') this.skipTime(-10);
-        if (e.key === ' ' || e.key === 'k') {
-          e.preventDefault();
-          const p = document.getElementById('purtv-player');
-          if (p) p.paused ? p.play() : p.pause();
-        }
-      });
       
       // Anti-Hijack: Prevent aggressive player ads from redirecting the main page
       window.addEventListener('beforeunload', (e) => {
@@ -1642,10 +1608,6 @@ function puruTVApp() {
 
     async loadPage(view, paramValue, pageNum = 1) {
       window.scrollTo(0, 0);
-      
-      // Stop native video before navigating
-      const oldPlayer = document.getElementById('purtv-player');
-      if (oldPlayer) { oldPlayer.pause(); oldPlayer.src = ""; oldPlayer.load(); }
 
       if ((view === 'stream' || view === 'detail') && paramValue) {
         view = paramValue.includes('episode') ? 'stream' : 'detail';
@@ -2449,60 +2411,16 @@ function puruTVApp() {
 
         
 
-        this.activeServer = target;
-        // Re-check after potential conversions
-        this.isDirectVideo = isDirectUrl(this.activeServer);
-
-
-        if (this.isDirectVideo) {
-          this.$nextTick(() => {
-            const video = document.getElementById('purtv-player');
-            if (!video) return;
-            const source = this.activeServer;
-
-            if (this.playerInstance) {
-              this.playerInstance.destroy();
-            }
-
-            if (Hls.isSupported() && (source.includes('.m3u8') || source.includes('manifest'))) {
-              const hls = new Hls();
-              hls.loadSource(source);
-              hls.attachMedia(video);
-              window.hls = hls;
-            } else {
-              video.src = source;
-            }
-
-            this.playerInstance = new Plyr(video, {
-              controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'pip', 'fullscreen'],
-              invertTime: false,
-              displayDuration: true,
-              keyboard: { focused: true, global: true }
-            });
-
-            this.playerInstance.on('ready', () => {
-              // Pindahkan kontrol skip ke dalam kontainer Plyr agar muncul di Fullscreen
-              const container = video.closest('.plyr');
-              const skipControls = document.querySelector('.plyr__skip-controls');
-              if (container && skipControls) {
-                container.appendChild(skipControls);
-              }
-              this.playerInstance.play().catch(() => {});
-            });
-          });
+        // Re-check if target is a direct video link
+        if (isDirectUrl(target)) {
+          // Wrap with the requested embed proxy
+          this.activeServer = `https://vercel-api-beta-red.vercel.app/api/plyr?url=${encodeURIComponent(target)}`;
+        } else {
+          this.activeServer = target;
         }
       } catch (e) {
         this.activeServer = typeof link === 'string' ? link : '';
-        this.isDirectVideo = isDirectUrl(this.activeServer);
       }
-    },
-    skipTime(seconds) {
-      try {
-        if (this.playerInstance) {
-          const currentTime = this.playerInstance.currentTime;
-          this.playerInstance.currentTime = Math.max(0, Math.min(currentTime + seconds, this.playerInstance.duration - 1.5));
-        }
-      } catch(e) {}
     }
   }
 }
